@@ -1,0 +1,21 @@
+{
+  "name": "Bingo Bango Bongo",
+  "short_name": "BBB",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#1a3e1a",
+  "theme_color": "#1a3e1a",
+  "icons": [
+    {
+      "src": "pin.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "pin.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    }
+  ]
+}
+

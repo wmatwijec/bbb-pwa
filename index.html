@@ -1,358 +1,379 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BBB Golf PWA</title>
-  <meta name="theme-color" content="#1a1a1a" />
+  <title>BBB Golf</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="icon" href="icon-192.png" />
-
+  <link rel="icon" href="icon.png" />
   <style>
     :root {
-      --bg: #1a1a1a;
-      --surface: #2a2a2a;
-      --text: #e0e0e0;
-      --text-muted: #aaaaaa;
-      --primary: #4caf50;
-      --accent: #ff9800;
-      --danger: #f44336;
-      --success: #66bb6a;
-      --border: #444;
+      --bg: #f4f4f4;
+      --card: #fff;
+      --text: #222;
+      --green: #0f0;
+      --btn-bg: #0f0;
+      --btn-text: #000;
+      --table-header: #555;
+      --table-bg: #eee;
+    }
+    [data-theme="dark"] {
+      --bg: #111;
+      --card: #222;
+      --text: #eee;
+      --green: #0f0;
+      --btn-bg: #0f0;
+      --btn-text: #000;
+      --table-header: #444;
+      --table-bg: #333;
     }
 
-    [data-theme="light"] {
-      --bg: #f5f5f5;
-      --surface: #ffffff;
-      --text: #212121;
-      --text-muted: #666666;
-      --primary: #388e3c;
-      --accent: #f57c00;
-      --danger: #d32f2f;
-      --success: #43a047;
-      --border: #ddd;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-family: 'Segoe UI', sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
       padding: 1rem;
       line-height: 1.5;
     }
-
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    h1, h2, h3 {
-      margin-bottom: 1rem;
-      color: var(--primary);
-    }
-
+    h1 { color: var(--green); text-align: center; margin-bottom: 1rem; }
     button {
-      background: var(--surface);
-      color: var(--text);
-      border: 1px solid var(--border);
-      padding: 0.5rem 1rem;
-      border-radius: 6px;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: bold;
       cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.2s;
+      margin: 0.25rem;
     }
-
-    button:hover {
-      background: var(--primary);
-      color: white;
-    }
-
     button:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
     }
-
-    input[type="checkbox"] {
-      transform: scale(1.3);
-      margin: 0 0.5rem;
+    .hidden { display: none !important; }
+    .card {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
+    /* CENTERED CONTROL BARS */
+    .control-bar {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
       margin: 1rem 0;
-      background: var(--surface);
+      flex-wrap: wrap;
     }
 
-    th, td {
-      border: 1px solid var(--border);
+    /* CENTERED CONTENT BLOCKS */
+    .center-block {
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* HOLE DISPLAY */
+    #holeDisplay {
+      margin: 0;
+      text-align: center;
+      width: 100%;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    /* TABLE */
+    #scoreTable {
+      width: 100%;
+      max-width: 800px;
+      margin: 0.5rem auto;
+      border-collapse: collapse;
+    }
+    #scoreTable th,
+    #scoreTable td {
       padding: 0.75rem;
       text-align: center;
+      border-bottom: 1px solid #ddd;
     }
-
-    th {
-      background: var(--bg);
+    #scoreTable th {
+      background: var(--table-header);
+      color: #fff;
       font-weight: 600;
     }
-
-    .hidden { display: none !important; }
-
-    .player-name {
-      font-weight: 600;
+    #scoreTable th:first-child,
+    #scoreTable td:first-child {
+      text-align: left;
+    }
+    tbody tr:nth-child(even) {
+      background: var(--table-bg);
     }
 
-    .gir { color: var(--success); font-weight: bold; }
+    /* CHECKBOXES */
+    input[type="checkbox"] {
+      width: 24px;
+      height: 24px;
+      transform: scale(1.5);
+      margin: 0 8px;
+      cursor: pointer;
+    }
+    @media (max-width: 768px) {
+      input[type="checkbox"] {
+        width: 28px;
+        height: 28px;
+        transform: scale(1.6);
+      }
+    }
 
-    .audit-good { color: var(--success); }
-    .audit-bad { color: var(--danger); }
-
-    .cb-mode .gir { color: #ffeb3b !important; }
-
-    /* DEBUG PANEL */
-    #debugPanel {
-      position: fixed;
-      bottom: 10px;
-      right: 10px;
-      width: 90%;
-      max-width: 800px;
-      max-height: 70vh;
-      overflow-y: auto;
-      background: #111;
-      border: 2px solid #0f0;
-      border-radius: 8px;
+    /* CARRY & AUDIT: VISIBLE IN DARK MODE */
+    .holeSummary, #runningAudit {
+      background: #ffffff !important;
       padding: 1rem;
-      color: #0f0;
-      font-family: 'Courier New', monospace;
-      font-size: 0.8rem;
-      z-index: 9999;
-      box-shadow: 0 0 20px rgba(0,255,0,0.3);
-    }
-
-    #debugPanel.hidden { display: none; }
-
-    #debugPanel h4 {
-      margin: 0 0 0.5rem;
-      color: #0f0;
-      font-size: 1rem;
-    }
-
-    #debugPanel table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 0.5rem;
-      font-size: 0.75rem;
-    }
-
-    #debugPanel th, #debugPanel td {
-      border: 1px solid #444;
-      padding: 4px;
+      border-radius: 8px;
+      margin: 0.75rem auto;
+      max-width: 800px;
+      min-height: 60px;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #d4edda;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
+      white-space: normal;
       text-align: center;
     }
 
-    #debugPanel th {
-      background: #222;
-      font-weight: bold;
+    /* CARRY: DARK GREEN */
+    .holeSummary {
+      color: #155724 !important;
+    }
+    .holeSummary strong {
+      color: #0a6b0a !important;
+      font-weight: bold !important;
     }
 
-    #closeDebug {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background: #f00;
-      color: #fff;
-      border: none;
-      padding: 4px 8px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-    }
-
-    /* === FIX: ALLOW CLICKS THROUGH SUMMARY & AUDIT === */
-    #holeSummary,
+    /* AUDIT: RED BOLD */
     #runningAudit {
-      pointer-events: none;
+      color: #dc3545 !important;
+      font-weight: bold !important;
+      border: 1px solid #f5c6cb;
     }
 
-    /* === BUT LET CHECKBOXES BE CLICKABLE === */
-    #scoreTable input[type="checkbox"] {
-      pointer-events: auto !important;
-      position: relative;
-      z-index: 10;
+    /* DARK MODE: FORCE TEXT COLOR */
+    body[data-theme="dark"] .holeSummary,
+    body[data-theme="dark"] #runningAudit {
+      background: #ffffff !important;
+      color: #155724 !important;
+    }
+    body[data-theme="dark"] .holeSummary strong {
+      color: #0a6b0a !important;
+    }
+    body[data-theme="dark"] #runningAudit {
+      color: #dc3545 !important;
+    }
+    body[data-theme="dark"] .audit-good { color: #0f0 !important; }
+    body[data-theme="dark"] .audit-bad { color: #f00 !important; }
+
+    /* SUMMARY CLASSES */
+    .summary-awarded {
+      background: #e6f7e6;
+      color: #155724;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+    .summary-carry-in {
+      background: #d4edda;
+      color: #155724;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+    .summary-no-carry {
+      background: #d1ecf1;
+      color: #0c5460;
+      padding: 0.75rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      margin: 1rem 0;
+    }
+    body[data-theme="dark"] .summary-awarded,
+    body[data-theme="dark"] .summary-carry-in {
+      background: #e6f7e6 !important;
+      color: #155724 !important;
+    }
+    body[data-theme="dark"] .summary-no-carry {
+      background: #d1ecf1 !important;
+      color: #0c5460 !important;
     }
 
-    /* Responsive */
-    @media (max-width: 600px) {
-      th, td { padding: 0.5rem; font-size: 0.9rem; }
-      #debugPanel { width: 95%; font-size: 0.7rem; }
+    .audit-good { color: #0f0; }
+    .audit-bad { color: #f00; }
+    .audit-line {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .history-item {
+      background: var(--card);
+      padding: 0.75rem;
+      margin: 0.5rem 0;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .player-tag {
+      display: inline-block;
+      background: #0f0;
+      color: #000;
+      padding: 0.25rem 0.5rem;
+      border-radius: 6px;
+      margin: 0.25rem;
+      font-size: 0.85rem;
+    }
+
+    /* PLAYER SELECT: CENTERED */
+    #playerSelect {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    #playerSelect label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.1rem;
+      justify-content: flex-start;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- COURSE SETUP -->
-    <section id="courseSetup">
-      <h1>BBB Golf</h1>
-      <button id="darkModeToggle">Light</button>
-      <button id="cbToggle">CB</button>
-      <button id="manageRosterBtn">Roster</button>
-      <button id="historyBtn">History</button>
+  <h1>BBB Golf</h1>
+  <div class="control-bar">
+    <button id="darkModeToggle">Light</button>
+    <button id="cbToggle">CB</button>
+    <button id="manageRosterBtn">Roster</button>
+    <button id="historyBtn">History</button>
+  </div>
 
-      <h2>Select Course</h2>
-      <select id="courseSelect"></select>
-      <button id="addCourse">+ New Course</button>
+  <!-- COURSE SETUP -->
+  <div id="courseSetup" class="card center-block">
+    <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center;flex-wrap:wrap;">
+      <select id="courseSelect" style="flex:1;max-width:300px;"></select>
+      <button id="addCourse">+ Course</button>
       <button id="nextToPlayers" disabled>Next</button>
-    </section>
+    </div>
+  </div>
 
-    <!-- PLAYER SETUP -->
-    <section id="playerSetup" class="hidden">
-      <h2>Select Players</h2>
-      <div id="playerSelect"></div>
-      <button id="backToCourse">Back</button>
-      <button id="startGame" disabled>Start Game</button>
-    </section>
+  <!-- PLAYER SETUP -->
+  <div id="playerSetup" class="card hidden center-block">
+    <button id="backToCourse">Back</button>
+    <div id="playerSelect"></div>
+    <div class="control-bar">
+      <button id="startGame" disabled>Start Round</button>
+    </div>
+  </div>
 
-    <!-- ROSTER MANAGEMENT -->
-    <section id="roster" class="hidden">
-      <h2>Manage Roster</h2>
-      <input id="rosterName" placeholder="Name" />
-      <input id="rosterPhone" placeholder="Phone" />
-      <input id="rosterEmail" placeholder="Email" />
-      <button id="addToRoster">+ Add</button>
-      <div id="rosterList"></div>
-      <button id="backToCourseFromRoster">Back</button>
-    </section>
+  <!-- ROSTER -->
+  <div id="roster" class="card hidden center-block">
+    <button id="backToCourseFromRoster">Back</button>
+    <input id="rosterName" placeholder="Name" style="width:100%;margin:0.5rem 0;" />
+    <input id="rosterPhone" placeholder="Phone" style="width:100%;margin:0.5rem 0;" />
+    <input id="rosterEmail" placeholder="Email" style="width:100%;margin:0.5rem 0;" />
+    <button id="addToRoster">Add</button>
+    <div id="rosterList"></div>
+  </div>
 
-    <!-- COURSE FORM -->
-    <section id="courseForm" class="hidden">
-      <h2>New Course</h2>
-      <input id="courseName" placeholder="Course Name" />
-      <div id="pars"></div>
-      <button id="saveCourse">Save</button>
-      <button id="cancelCourse">Cancel</button>
-    </section>
+  <!-- COURSE FORM -->
+  <div id="courseForm" class="card hidden center-block">
+    <button id="cancelCourse">Cancel</button>
+    <input id="courseName" placeholder="Course Name" style="width:100%;margin:0.5rem 0;" />
+    <div id="pars"></div>
+    <button id="saveCourse">Save Course</button>
+  </div>
 
-    <!-- START HOLE MODAL -->
-    <div id="startHoleModal" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:100;">
-      <div style="background:var(--surface);padding:2rem;border-radius:12px;max-width:90%;">
-        <h3>Select Starting Hole</h3>
-        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:0.5rem;margin:1rem 0;">
-          <label><input type="radio" name="startHole" value="1">1</label>
-          <label><input type="radio" name="startHole" value="2">2</label>
-          <label><input type="radio" name="startHole" value="3">3</label>
-          <label><input type="radio" name="startHole" value="4">4</label>
-          <label><input type="radio" name="startHole" value="5">5</label>
-          <label><input type="radio" name="startHole" value="6">6</label>
-          <label><input type="radio" name="startHole" value="7">7</label>
-          <label><input type="radio" name="startHole" value="8">8</label>
-          <label><input type="radio" name="startHole" value="9">9</label>
-          <label><input type="radio" name="startHole" value="10">10</label>
-          <label><input type="radio" name="startHole" value="11">11</label>
-          <label><input type="radio" name="startHole" value="12">12</label>
-          <label><input type="radio" name="startHole" value="13">13</label>
-          <label><input type="radio" name="startHole" value="14">14</label>
-          <label><input type="radio" name="startHole" value="15">15</label>
-          <label><input type="radio" name="startHole" value="16">16</label>
-          <label><input type="radio" name="startHole" value="17">17</label>
-          <label><input type="radio" name="startHole" value="18">18</label>
-        </div>
-        <button id="confirmStartHole">Start</button>
-        <button id="cancelStartHole">Cancel</button>
+  <!-- START HOLE MODAL -->
+  <div id="startHoleModal" class="card hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;width:90%;max-width:400px;">
+    <h3>Select Starting Hole</h3>
+    <label><input type="radio" name="startHole" value="1"> Hole 1</label><br>
+    <label><input type="radio" name="startHole" value="10"> Hole 10</label><br>
+    <div class="control-bar">
+      <button id="confirmStartHole">Start</button>
+      <button id="cancelStartHole">Cancel</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game" class="card hidden center-block">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap;">
+      <h3 id="holeDisplay"></h3>
+      <div>
+        <button id="prevHole">Prev</button>
+        <button id="nextHole">Next</button>
+        <button id="editHole" class="hidden">Edit</button>
+        <button id="finishHole">Finish Hole</button>
       </div>
     </div>
 
-    <!-- GAME SCREEN -->
-    <section id="game" class="hidden">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-        <h2 id="holeDisplay"></h2>
-        <div>
-          <button id="prevHole">Previous</button>
-          <button id="nextHole">Next</button>
-        </div>
-      </div>
+    <table id="scoreTable">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th id="firstOnHeader">FO</th>
+          <th>CL</th>
+          <th>P</th>
+          <th>H</th>
+          <th>Run</th>
+          <th>Tot</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
 
-      <table id="scoreTable">
-        <thead>
-          <tr>
-            <th>Player</th>
-            <th id="firstOnHeader">First On</th>
-            <th>Closest</th>
-            <th>Putt</th>
-            <th>Hole</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <div class="holeSummary"></div>
+    <div id="runningAudit"></div>
 
-      <div id="holeSummary"></div>
-      <div id="runningAudit"></div>
-
-      <div style="margin-top:1rem;">
-        <button id="finishHole">Finish Hole</button>
-        <button id="editHole" class="hidden">Edit Hole</button>
-      </div>
-
-      <div style="margin-top:1rem;display:flex;gap:0.5rem;flex-wrap:wrap;">
-        <button id="completeRound" class="btn">Complete Round</button>
-        <button id="sendSMS">SMS</button>
-        <button id="exportCSV">CSV</button>
-      </div>
-    </section>
-
-    <!-- SUMMARY -->
-    <section id="summary" class="hidden">
-      <h2>Round Complete!</h2>
-      <ol id="leaderboard"></ol>
-      <button id="completeRound" class="hidden">View Summary</button>
-      <button id="saveRound">Save Round</button>
+    <div class="control-bar">
+      <button id="sendSMS">Send Update</button>
+      <button id="exportCSV">Export CSV</button>
+      <button id="completeRound">Complete Round</button>
       <button id="exitRound">Exit</button>
-      <button id="restart">Restart App</button>
-    </section>
-
-    <!-- HISTORY -->
-    <section id="history" class="hidden">
-      <h2>Round History</h2>
-      <div id="historyList"></div>
-      <button id="backToSetup">Back</button>
-    </section>
+      <button id="saveRound">Save Round</button>
+    </div>
   </div>
 
-  <!-- DEBUG PANEL -->
-  <div id="debugPanel" class="hidden">
-    <button id="closeDebug">X</button>
+  <!-- SUMMARY -->
+  <div id="summary" class="card hidden center-block">
+    <button id="backToSetup">Setup</button>
+    <h3>Final Leaderboard</h3>
+    <ol id="leaderboard"></ol>
+    <div class="control-bar">
+      <button id="restart">New Round</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="history" class="card hidden center-block">
+    <button id="backToSetup">Setup</button>
+    <h3>Round History</h3>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- DEBUG -->
+  <div id="debugPanel" class="card hidden" style="position:fixed;bottom:10px;right:10px;width:300px;max-height:80vh;overflow:auto;z-index:1000;">
+    <button id="closeDebug" style="float:right;">Close</button>
+    <h4>Carry Debug</h4>
     <div id="debugOutput"></div>
   </div>
 
-  <script src="app.js"></script>
+  <div id="simResult"></div>
 
-  <!-- PWA Install Prompt -->
-  <script>
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const installBtn = document.createElement('button');
-      installBtn.textContent = 'Install App';
-      installBtn.style.position = 'fixed';
-      installBtn.style.bottom = '20px';
-      installBtn.style.left = '20px';
-      installBtn.style.zIndex = '1000';
-      installBtn.onclick = () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then(() => {
-          installBtn.remove();
-        });
-      };
-      document.body.appendChild(installBtn);
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>

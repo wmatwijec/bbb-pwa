@@ -1,4 +1,4 @@
-console.log("BBB PWA v21.0 - CONSUMED + OPEN CARRIES + DARK MODE FIX");
+console.log("BBB PWA v14.8 - FULLY DYNAMIC CARRY SYSTEM (NO GLOBALS)");
 
 function logScreen(name) {
   console.log(`%cSCREEN: ${name}`, 'color: cyan; font-weight: bold');
@@ -69,10 +69,12 @@ const els = {
   editHole: document.getElementById('editHole'),
   firstOnHeader: document.getElementById('firstOnHeader'),
 
-  scoreTable: document.getElementById('scoreTable'),
+  scoreTable: document.getElementById('scoreTable'),  // FIXED: Cache <table>
   holeSummary: document.getElementById('holeSummary'),
   runningAudit: document.getElementById('runningAudit'),
 
+  copyScores: document.getElementById('copyScores'),
+  pasteScores: document.getElementById('pasteScores'),
   sendSMS: document.getElementById('sendSMS'),
   exportCSV: document.getElementById('exportCSV'),
 
@@ -84,10 +86,7 @@ const els = {
 
   debugPanel: document.getElementById('debugPanel'),
   debugOutput: document.getElementById('debugOutput'),
-  closeDebug: document.getElementById('closeDebug'),
-
-  simulateBtn: document.getElementById('simulateBtn'),
-  simResult: document.getElementById('simResult')
+  closeDebug: document.getElementById('closeDebug')
 };
 
 // ==== PREDEFINED COURSES & ROSTER ====
@@ -138,12 +137,6 @@ document.addEventListener('keydown', (e) => {
     els.debugPanel.classList.toggle('hidden', !debugMode);
     if (debugMode) updateDebugPanel();
   }
-  if (e.keyCode === 113) {
-    e.preventDefault();
-    if (confirm('Run full 18-hole simulation?')) {
-      simulateRound();
-    }
-  }
 });
 els.closeDebug.addEventListener('click', () => {
   debugMode = false;
@@ -153,11 +146,6 @@ els.closeDebug.addEventListener('click', () => {
 function updateDebugPanel() {
   els.debugOutput.innerHTML = '';
   renderDebugCarryTable();
-  const hint = document.createElement('div');
-  hint.style.marginTop = '1rem'; hint.style.padding = '0.5rem'; hint.style.background = '#333';
-  hint.style.borderRadius = '6px'; hint.style.fontSize = '0.8rem'; hint.style.color = '#0f0';
-  hint.innerHTML = '<strong>F2</strong> = Run Simulation (PC only)';
-  els.debugOutput.appendChild(hint);
 }
 
 // ==== ROSTER, HISTORY, LOAD/SAVE ====
@@ -176,8 +164,14 @@ function renderRoster() {
     div.className = 'player-tag';
     div.innerHTML = `${p.name} <small>${p.phone || ''} ${p.email || ''}</small>`;
     const del = document.createElement('button');
-    del.textContent = 'X'; del.style.marginLeft = '0.5rem';
-    del.onclick = () => { roster.splice(i, 1); saveRoster(); renderRoster(); renderPlayerSelect(); };
+    del.textContent = 'X';
+    del.style.marginLeft = '0.5rem';
+    del.onclick = () => {
+      roster.splice(i, 1);
+      saveRoster();
+      renderRoster();
+      renderPlayerSelect();
+    };
     div.appendChild(del);
     els.rosterList.appendChild(div);
   });
@@ -211,18 +205,14 @@ function loadHistory() {
 function saveHistory() {
   localStorage.setItem('bbb_history', JSON.stringify(roundHistory));
 }
-
 function showHistory() {
   hideAll();
   els.history.classList.remove('hidden');
   els.historyList.innerHTML = '';
-
   if (roundHistory.length === 0) {
     els.historyList.innerHTML = '<p>No rounds saved yet.</p>';
-    logScreen('HISTORY - EMPTY');
     return;
   }
-
   roundHistory.forEach((round, i) => {
     const div = document.createElement('div');
     div.className = 'history-item';
@@ -237,8 +227,7 @@ function showHistory() {
           ...p, 
           scores: Array(HOLES).fill(null).map(() => ({})), 
           gir: Array(HOLES).fill(false), 
-          _cachedTotal: 0,
-          _cachedHoleTotals: {}
+          _cachedTotal: 0 
         }));
         currentHole = round.currentHole;
         currentCourse = round.currentCourse;
@@ -249,9 +238,8 @@ function showHistory() {
         hideAll();
         els.game.classList.remove('hidden');
         els.manageRosterBtn.disabled = true;
-        els.historyBtn.disabled = true;
         updateHole();
-        setupGameButtons();
+        setupSyncButtons();
         logScreen('ROUND RESTORED');
       }
     };
@@ -259,16 +247,21 @@ function showHistory() {
   });
   logScreen('HISTORY');
 }
+els.historyBtn.addEventListener('click', showHistory);
+els.backToSetup.addEventListener('click', () => {
+  hideAll();
+  els.courseSetup.classList.remove('hidden');
+  logScreen('COURSE SETUP');
+});
 
 function save() {
   localStorage.setItem('bbb', JSON.stringify({ 
-    players: players.map(p => ({ ...p, _cachedTotal: undefined, _cachedHoleTotals: undefined })), 
+    players: players.map(p => ({ ...p, _cachedTotal: undefined })), 
     currentHole, currentCourse,
     finishedHoles: Array.from(finishedHoles), inRound
   }));
 }
 
-// ==== LOAD ====
 function load(callback) {
   const savedRoster = localStorage.getItem('bbb_roster');
   if (!savedRoster) {
@@ -285,6 +278,9 @@ function load(callback) {
   } else {
     try { courses = JSON.parse(savedCourses); } catch { courses = [...PREDEFINED_COURSES]; }
   }
+
+  renderCourseSelect();
+  renderRoster();
 
   localStorage.removeItem('bbb');
   inRound = false;
@@ -316,26 +312,12 @@ function renderCourseSelect() {
     opt.textContent = c.name;
     els.courseSelect.appendChild(opt);
   });
-  const saved = localStorage.getItem('bbb_currentCourse');
-  if (saved !== null && courses[saved]) {
-    els.courseSelect.value = saved;
-    currentCourse = parseInt(saved);
-    els.nextToPlayers.disabled = false;
-  } else {
-    els.nextToPlayers.disabled = true;
-  }
+  els.nextToPlayers.disabled = true;
 }
 
 els.courseSelect.addEventListener('change', () => {
-  const val = els.courseSelect.value;
-  if (val === '') {
-    currentCourse = null;
-    els.nextToPlayers.disabled = true;
-  } else {
-    currentCourse = parseInt(val);
-    localStorage.setItem('bbb_currentCourse', currentCourse);
-    els.nextToPlayers.disabled = false;
-  }
+  currentCourse = parseInt(els.courseSelect.value);
+  els.nextToPlayers.disabled = currentCourse === null || isNaN(currentCourse);
   save();
 });
 
@@ -343,7 +325,9 @@ function renderPlayerSelect() {
   els.playerSelect.innerHTML = '';
   roster.forEach((p, i) => {
     const div = document.createElement('div');
-    div.innerHTML = `<label><input type="checkbox" data-index="${i}" ${players.find(pl => pl.name === p.name) ? 'checked' : ''}> ${p.name}</label>`;
+    div.innerHTML = `
+      <label><input type="checkbox" data-index="${i}" ${players.find(pl => pl.name === p.name) ? 'checked' : ''}> ${p.name}</label>
+    `;
     els.playerSelect.appendChild(div);
   });
   els.playerSelect.querySelectorAll('input').forEach(chk => {
@@ -356,8 +340,7 @@ function renderPlayerSelect() {
           ...player, 
           scores: Array(HOLES).fill(null).map(() => ({})), 
           gir: Array(HOLES).fill(false), 
-          _cachedTotal: 0,
-          _cachedHoleTotals: {}
+          _cachedTotal: 0  // INITIALIZE TOTAL
         });
       } else {
         players = players.filter(pl => pl.name !== player.name);
@@ -397,7 +380,6 @@ els.confirmStartHole.addEventListener('click', () => {
     p.scores = Array(HOLES).fill(null).map(() => ({}));
     p.gir = Array(HOLES).fill(false);
     p._cachedTotal = 0;
-    p._cachedHoleTotals = {};
   });
 
   inRound = true;
@@ -406,9 +388,8 @@ els.confirmStartHole.addEventListener('click', () => {
   hideAll();
   els.game.classList.remove('hidden');
   els.manageRosterBtn.disabled = true;
-  els.historyBtn.disabled = true;
   updateHole();
-  setupGameButtons();
+  setupSyncButtons();
   save();
   logScreen('GAME STARTED');
 });
@@ -464,261 +445,49 @@ els.cancelCourse.addEventListener('click', () => {
   logScreen('COURSE CANCELLED');
 });
 
-// === CARRY LOGIC ===
-function getCarryInForHole(holeNumber) {
-  const carry = { firstOn: 0, closest: 0, putt: 0, greenie: 0 };
-  const maxHole = Math.min(holeNumber - 1, HOLES - 1);
-  for (let h = 1; h <= maxHole; h++) {
-    if (!finishedHoles.has(h)) continue;
+// ==== CARRY LOGIC ====
+function getCarryInForHole(holeNumber = currentHole) {
+  let firstOn = 0, closest = 0, putt = 0, greenie = 0;
+
+  const holesToCheck = Array.from(finishedHoles)
+    .filter(h => h < holeNumber)
+    .sort((a, b) => a - b);
+
+  for (const h of holesToCheck) {
     const idx = h - 1;
     const par = courses[currentCourse].pars[idx];
     const isPar3 = par === 3;
     const scores = players.map(p => p.scores[idx]).filter(Boolean);
-
-    if (scores.some(s => s.firstOn)) {
-      if (isPar3) carry.greenie = 0;
-      else carry.firstOn = 0;
-    } else {
-      if (isPar3) carry.greenie++;
-      else carry.firstOn++;
+    if (!scores.some(s => s.firstOn)) {
+      if (isPar3) greenie++;
+      else firstOn++;
     }
-
-    if (scores.some(s => s.closest)) carry.closest = 0;
-    else carry.closest++;
-
-    if (scores.some(s => s.putt)) carry.putt = 0;
-    else carry.putt++;
-  }
-  return carry;
-}
-
-function precomputeAllTotals() {
-  players.forEach(p => {
-    let total = 0;
-    p._cachedHoleTotals = {};
-
-    for (let idx = 0; idx < HOLES; idx++) {
-      const holeNumber = idx + 1;
-      if (!finishedHoles.has(holeNumber)) continue;
-
-      const s = p.scores[idx] || {};
-      const carryIn = getCarryInForHole(holeNumber);
-      const prevWasPar3 = holeNumber > 1 && courses[currentCourse].pars[holeNumber - 2] === 3;
-
-      let holePoints = 0;
-      if (s.firstOn) holePoints += 1;
-      if (s.closest) holePoints += 1;
-      if (s.putt) holePoints += 1;
-
-      if (holeNumber < HOLES) {
-        if (s.firstOn) holePoints += carryIn[prevWasPar3 ? 'greenie' : 'firstOn'];
-        if (s.closest) holePoints += carryIn.closest;
-        if (s.putt) holePoints += carryIn.putt;
-      }
-
-      p._cachedHoleTotals[idx] = holePoints;
-      total += holePoints;
-    }
-
-    p._cachedTotal = total;
-  });
-}
-
-// ==== RUNNING TOTAL (UP TO CURRENT HOLE) ====
-function getRunningTotal(player) {
-  let sum = 0;
-  for (let h = 1; h <= currentHole; h++) {
-    if (finishedHoles.has(h)) {
-      sum += player._cachedHoleTotals?.[h - 1] || 0;
-    }
-  }
-  return sum;
-}
-
-// ==== RENDERING ====
-function updateHole() {
-  if (!inRound || players.length === 0 || currentCourse === null || !courses[currentCourse]) return;
-
-  const holeIdx = currentHole - 1;
-  const par = courses[currentCourse].pars[holeIdx];
-  const isPar3 = par === 3;
-
-  els.holeDisplay.innerHTML = `Hole ${currentHole} (Par ${par}) • ${finishedHoles.size} finished`;
-
-  els.firstOnHeader.textContent = isPar3 ? 'GR' : 'FO';
-
-  const isFinished = finishedHoles.has(currentHole);
-  els.finishHole.classList.toggle('hidden', isFinished);
-  els.editHole.classList.toggle('hidden', !isFinished);
-
-  const carryIn = getCarryInForHole(currentHole);
-  renderTable(carryIn, isFinished);
-  renderHoleSummary(carryIn, isFinished);
-  renderRunningAudit();
-
-  save();
-  if (debugMode) renderDebugCarryTable();
-}
-
-function renderTable(carryIn, isFinished) {
-  if (!els.scoreTable || !els.scoreTable.tBodies || !els.scoreTable.tBodies[0]) {
-    console.warn('Table not ready yet');
-    return;
-  }
-  const tbody = els.scoreTable.tBodies[0];
-  tbody.innerHTML = '';
-
-  const holeIdx = currentHole - 1;
-  const par = courses[currentCourse].pars[holeIdx];
-  const isPar3 = par === 3;
-
-  players.forEach(p => {
-    const s = p.scores[holeIdx] || {};
-    const row = tbody.insertRow();
-
-    row.insertCell().textContent = p.name;
-    row.cells[0].className = 'player-name';
-
-    const createCheckbox = (point) => {
-      const cell = row.insertCell();
-      const input = document.createElement('input');
-      input.type = 'checkbox';
-      input.checked = !!s[point];
-      input.disabled = isFinished;
-      input.onclick = () => toggleScore(p, holeIdx, point);
-      cell.appendChild(input);
-    };
-
-    createCheckbox('firstOn');
-    createCheckbox('closest');
-    createCheckbox('putt');
-
-    const holeCell = row.insertCell();
-    if (isFinished) {
-      const labels = [];
-      if (s.firstOn) labels.push(isPar3 ? 'GR' : 'FO');
-      if (s.closest) labels.push('CL');
-      if (s.putt) labels.push('P');
-      const pts = p._cachedHoleTotals?.[holeIdx] || 0;
-      holeCell.innerHTML = `<div style="font-size:0.85rem;line-height:1.2;"><strong>${pts}</strong><br><small style="color:#aaa;">${labels.join(', ')}</small></div>`;
-    } else {
-      holeCell.textContent = '—';
-      holeCell.style.color = '#666';
-    }
-
-    const runCell = row.insertCell();
-    runCell.textContent = getRunningTotal(p);
-    runCell.style.fontWeight = '600';
-    runCell.style.color = '#0a0';
-
-    const totalCell = row.insertCell();
-    totalCell.textContent = p._cachedTotal || 0;
-    totalCell.style.fontWeight = '600';
-  });
-}
-
-function renderHoleSummary(carryIn, isFinished) {
-  if (!els.holeSummary) return;
-  const holeIdx = currentHole - 1;
-  const par = courses[currentCourse].pars[holeIdx];
-  const isPar3 = par === 3;
-
-  let awarded = 0;
-  let carryOutLines = [];
-  let carryInLines = [];
-
-  if (carryIn.firstOn) carryInLines.push(`FO: +${carryIn.firstOn}`);
-  if (carryIn.closest) carryInLines.push(`CL: +${carryIn.closest}`);
-  if (carryIn.putt) carryInLines.push(`P: +${carryIn.putt}`);
-  if (carryIn.greenie) carryInLines.push(`GR: +${carryIn.greenie}`);
-
-  if (isFinished) {
-    players.forEach(p => {
-      const s = p.scores[holeIdx] || {};
-      if (s.firstOn) awarded += 1;
-      if (s.closest) awarded += 1;
-      if (s.putt) awarded += 1;
-    });
-    const carryOut = getCarryInForHole(currentHole + 1);
-    if (carryOut.firstOn) carryOutLines.push(`FO: +${carryOut.firstOn}`);
-    if (carryOut.closest) carryOutLines.push(`CL: +${carryOut.closest}`);
-    if (carryOut.putt) carryOutLines.push(`P: +${carryOut.putt}`);
-    if (carryOut.greenie) carryOutLines.push(`GR: +${carryOut.greenie}`);
+    if (!scores.some(s => s.closest)) closest++;
+    if (!scores.some(s => s.putt)) putt++;
   }
 
-  els.holeSummary.innerHTML = isFinished ? `
-    <div class="summary-awarded">
-      <strong>Awarded:</strong> ${awarded}<br>
-      <strong>Carry:</strong> ${carryOutLines.length ? carryOutLines.join(', ') : '0'}
-    </div>
-  ` : carryInLines.length ? `
-    <div class="summary-carry-in">
-      <strong>Carry In:</strong> ${carryInLines.join(', ')}
-    </div>
-  ` : `
-    <div class="summary-no-carry">
-      <strong>No Carry In</strong>
-    </div>
-  `;
+  return { firstOn, closest, putt, greenie };
 }
 
-function renderRunningAudit() {
-  const auditEl = document.getElementById('runningAudit');
-  if (!auditEl) {
-    console.error('runningAudit element not found!');
-    return;
-  }
-
-  const totalBasePoints = finishedHoles.size * 3;
-  let baseAwarded = 0;
-  const consumed = { firstOn: 0, closest: 0, putt: 0, greenie: 0 };
-
-  // Count awarded + consumed carries
-  for (const h of Array.from(finishedHoles).sort((a, b) => a - b)) {
+function getCarryOut() {
+  let firstOn = 0, closest = 0, putt = 0, greenie = 0;
+  const sorted = Array.from(finishedHoles).sort((a, b) => a - b);
+  for (const h of sorted) {
     const idx = h - 1;
-    const scores = players.map(p => p.scores[idx]).filter(Boolean);
-    const carryIn = getCarryInForHole(h);
-
-    if (scores.some(s => s.firstOn)) {
-      baseAwarded++;
-      if (carryIn.firstOn > 0) consumed.firstOn += carryIn.firstOn;
-    }
-    if (scores.some(s => s.closest)) {
-      baseAwarded++;
-      if (carryIn.closest > 0) consumed.closest += carryIn.closest;
-    }
-    if (scores.some(s => s.putt)) {
-      baseAwarded++;
-      if (carryIn.putt > 0) consumed.putt += carryIn.putt;
-    }
     const par = courses[currentCourse].pars[idx];
-    if (par === 3 && scores.some(s => s.firstOn)) {
-      if (carryIn.greenie > 0) consumed.greenie += carryIn.greenie;
+    const isPar3 = par === 3;
+    const scores = players.map(p => p.scores[idx]).filter(Boolean);
+    if (!scores.some(s => s.firstOn)) {
+      if (isPar3) greenie++;
+      else firstOn++;
     }
+    if (!scores.some(s => s.closest)) closest++;
+    if (!scores.some(s => s.putt)) putt++;
   }
-
-  const totalConsumed = consumed.firstOn + consumed.closest + consumed.putt + consumed.greenie;
-  const carryOut = getCarryInForHole(HOLES + 1);
-  const totalOpen = carryOut.firstOn + carryOut.closest + carryOut.putt + carryOut.greenie;
-
-  const total = baseAwarded + totalConsumed + totalOpen;
-  const balanced = total === totalBasePoints;
-
-  const openLines = [];
-  if (carryOut.firstOn) openLines.push(`FO: ${carryOut.firstOn}`);
-  if (carryOut.closest) openLines.push(`CL: ${carryOut.closest}`);
-  if (carryOut.putt) openLines.push(`P: ${carryOut.putt}`);
-  if (carryOut.greenie) openLines.push(`GR: ${carryOut.greenie}`);
-
-  auditEl.innerHTML = `
-    <div class="audit-line ${balanced ? 'audit-good' : 'audit-bad'}">
-      <strong>Round:</strong> ${baseAwarded} awarded + ${totalConsumed} consumed = ${baseAwarded + totalConsumed} / ${totalBasePoints}<br>
-      ${totalOpen > 0 ? `<small><strong>Open:</strong> ${openLines.join(', ')}</small>` : '<small>No open carries</small>'}
-    </div>
-  `;
+  return { firstOn, closest, putt, greenie };
 }
 
-// ==== POINT HANDLING ====
+// ==== POINT HANDLING — MOVED ABOVE renderTable() ====
 function toggleScore(player, holeIdx, point) {
   const score = player.scores[holeIdx];
   const wasChecked = !!score[point];
@@ -736,76 +505,200 @@ function toggleScore(player, holeIdx, point) {
 
   score[point] = willBeChecked;
   save();
-  precomputeAllTotals();
   updateHole();
 }
 
-function finishCurrentHole() {
-  finishedHoles.add(currentHole);
-  save();
-  precomputeAllTotals();
-  updateHole();
+// ==== TOTALS ====
+function precomputeAllTotals() {
+  players.forEach(p => {
+    let total = 0;
+    for (let idx = 0; idx < HOLES; idx++) {
+      const holeNumber = idx + 1;
+      if (!finishedHoles.has(holeNumber)) continue;
+
+      const carryIn = getCarryInForHole(holeNumber);
+      const s = p.scores[idx] || {};
+      const par = courses[currentCourse].pars[idx];
+      const isPar3 = par === 3;
+
+      if (s.firstOn) total += 1 + (isPar3 ? carryIn.greenie : carryIn.firstOn);
+      if (s.closest) total += 1 + carryIn.closest;
+      if (s.putt) total += 1 + carryIn.putt;
+    }
+    p._cachedTotal = total;
+  });
 }
 
-// ==== SIMULATION MODE ====
-function simulateRound() {
-  if (inRound) {
-    if (!confirm('End current round and start simulation?')) return;
-    resetRound();
-  }
+// ==== RENDERING ====
+function updateHole() {
+  if (currentCourse === null || !courses[currentCourse]) return;
 
-  if (courses.length === 0) {
-    alert('No courses found!');
-    return;
-  }
-  currentCourse = 0;
-  localStorage.setItem('bbb_currentCourse', currentCourse);
+  const holeIdx = currentHole - 1;
+  const par = courses[currentCourse].pars[holeIdx];
 
-  if (roster.length < 2) {
-    alert('Need at least 2 players in roster!');
-    return;
-  }
-  players = roster.slice(0, 4).map(p => ({
-    ...p,
-    scores: Array(HOLES).fill(null).map(() => ({})),
-    gir: Array(HOLES).fill(false),
-    _cachedTotal: 0,
-    _cachedHoleTotals: {}
-  }));
+  els.holeDisplay.innerHTML = `Hole ${currentHole} (Par ${par}) • ${finishedHoles.size} finished`;
+  els.firstOnHeader.textContent = par === 3 ? 'Greenie' : 'First On';
 
-  currentHole = 1;
-  finishedHoles.clear();
-  inRound = true;
+  // FORCE isFinished to be accurate
+  const isFinished = finishedHoles.has(currentHole);
+  els.finishHole.classList.toggle('hidden', isFinished);
+  els.editHole.classList.toggle('hidden', !isFinished);
 
-  const names = players.map(p => p.name);
-  const binomialSuccess = (p) => Math.random() < p;
+  const carryIn = getCarryInForHole();
+  renderTable(carryIn, isFinished);  // PASS isFinished
+  renderHoleSummary(carryIn, isFinished);
+  renderRunningAudit();
 
-  for (let h = 1; h <= HOLES; h++) {
-    currentHole = h;
-    const holeIdx = h - 1;
-    const par = courses[currentCourse].pars[holeIdx];
-
-    const firstOnWinner = binomialSuccess(0.90) ? names[Math.floor(Math.random() * names.length)] : null;
-    const closestWinner = binomialSuccess(0.99) ? names[Math.floor(Math.random() * names.length)] : null;
-    const puttWinner = binomialSuccess(0.80) ? names[Math.floor(Math.random() * names.length)] : null;
-
-    if (firstOnWinner) players.find(p => p.name === firstOnWinner).scores[holeIdx].firstOn = true;
-    if (closestWinner) players.find(p => p.name === closestWinner).scores[holeIdx].closest = true;
-    if (puttWinner) players.find(p => p.name === puttWinner).scores[holeIdx].putt = true;
-
-    finishedHoles.add(h);
-  }
-
-  precomputeAllTotals();
-  updateHole();
   save();
 
-  const playerTotal = players.reduce((sum, p) => sum + p._cachedTotal, 0);
-  const carry = getCarryInForHole(HOLES + 1);
-  const totalCarry = carry.firstOn + carry.closest + carry.putt + carry.greenie;
+  if (players.length > 0) {
+    precomputeAllTotals();
+  }
 
+  if (debugMode) renderDebugCarryTable();
+}
+
+
+function renderTable(carryIn, isFinished) {
+  if (!els.scoreTable || players.length === 0) return;
+
+  const tbody = els.scoreTable.tBodies[0];
+  if (!tbody) return;
+  tbody.innerHTML = '';
+
+  const holeIdx = currentHole - 1;
+  const par = courses[currentCourse].pars[holeIdx];
+  const isPar3 = par === 3;
+
+  players.forEach(p => {
+    if (p._cachedTotal === undefined) p._cachedTotal = 0;
+
+    const s = p.scores[holeIdx] || {};
+    const row = tbody.insertRow();
+
+    const nameCell = row.insertCell();
+    nameCell.textContent = p.name;
+    nameCell.className = 'player-name';
+
+    const firstOnCell = row.insertCell();
+    const firstOnInput = document.createElement('input');
+    firstOnInput.type = 'checkbox';
+    firstOnInput.checked = !!s.firstOn;
+    firstOnInput.disabled = isFinished;  // ← FIXED: disabled only AFTER finish
+    firstOnInput.onclick = () => toggleScore(p, holeIdx, 'firstOn');
+    firstOnCell.appendChild(firstOnInput);
+
+    const closestCell = row.insertCell();
+    const closestInput = document.createElement('input');
+    closestInput.type = 'checkbox';
+    closestInput.checked = !!s.closest;
+    closestInput.disabled = isFinished;  // ← FIXED
+    closestInput.onclick = () => toggleScore(p, holeIdx, 'closest');
+    closestCell.appendChild(closestInput);
+
+    const puttCell = row.insertCell();
+    const puttInput = document.createElement('input');
+    puttInput.type = 'checkbox';
+    puttInput.checked = !!s.putt;
+    puttInput.disabled = isFinished;  // ← FIXED
+    puttInput.onclick = () => toggleScore(p, holeIdx, 'putt');
+    puttCell.appendChild(puttInput);
+
+    const holeCell = row.insertCell();
+    if (isFinished) {
+      let pts = 0;
+      let labels = [];
+
+      if (s.firstOn) {
+        const carry = isPar3 ? carryIn.greenie : carryIn.firstOn;
+        pts += 1 + carry;
+        labels.push(`${isPar3 ? 'Greenie' : 'First On'} +${carry}`);
+      }
+      if (s.closest) {
+        pts += 1 + carryIn.closest;
+        labels.push(`Closest +${carryIn.closest}`);
+      }
+      if (s.putt) {
+        pts += 1 + carryIn.putt;
+        labels.push(`Putt +${carryIn.putt}`);
+      }
+
+      holeCell.innerHTML = `
+        <div style="font-size:0.85rem;line-height:1.2;">
+          <strong>${pts}</strong><br>
+          <small style="color:#aaa;">${labels.join(', ')}</small>
+        </div>`;
+    } else {
+      holeCell.textContent = '—';
+      holeCell.style.color = '#666';
+    }
+
+    const totalCell = row.insertCell();
+    totalCell.textContent = p._cachedTotal;
+    totalCell.style.fontWeight = '600';
+  });
+}
+
+
+
+
+function renderHoleSummary(carryIn, isFinished) {
+  if (!els.holeSummary) return;
+
+  const holeIdx = currentHole - 1;
+  const par = courses[currentCourse].pars[holeIdx];
+  const isPar3 = par === 3;
+
+  let awarded = 0;
+  let carryOutLines = [];
+  let carryInLines = [];
+
+  if (carryIn.firstOn) carryInLines.push(`First On: +${carryIn.firstOn}`);
+  if (carryIn.closest) carryInLines.push(`Closest: +${carryIn.closest}`);
+  if (carryIn.putt) carryInLines.push(`Putt: +${carryIn.putt}`);
+  if (carryIn.greenie) carryInLines.push(`Greenie: +${carryIn.greenie}`);
+
+  if (isFinished) {
+    players.forEach(p => {
+      const s = p.scores[holeIdx] || {};
+      if (s.firstOn) {
+        const carry = isPar3 ? carryIn.greenie : carryIn.firstOn;
+        awarded += 1 + carry;
+      }
+      if (s.closest) awarded += 1 + carryIn.closest;
+      if (s.putt) awarded += 1 + carryIn.putt;
+    });
+
+    const carryOut = getCarryOut();
+    if (carryOut.firstOn) carryOutLines.push(`First On: +${carryOut.firstOn}`);
+    if (carryOut.closest) carryOutLines.push(`Closest: +${carryOut.closest}`);
+    if (carryOut.putt) carryOutLines.push(`Putt: +${carryOut.putt}`);
+    if (carryOut.greenie) carryOutLines.push(`Greenie: +${carryOut.greenie}`);
+  }
+
+  els.holeSummary.innerHTML = isFinished ? `
+    <div style="margin:1rem 0;padding:0.75rem;background:#e6f7e6;border-radius:8px;font-size:0.9rem;color:#155724;">
+      <strong>Points Awarded:</strong> ${awarded}<br>
+      <strong>Carry Forward:</strong> ${carryOutLines.length ? carryOutLines.join(', ') : '0'}
+    </div>
+  ` : carryInLines.length ? `
+    <div style="margin:1rem 0;padding:0.75rem;background:#d4edda;border-radius:8px;font-size:0.9rem;color:#155724;">
+      <strong>Carry In:</strong> ${carryInLines.join(', ')}
+    </div>
+  ` : `
+    <div style="margin:1rem 0;padding:0.75rem;background:#d1ecf1;border-radius:8px;font-size:0.9rem;color:#0c5460;">
+      <strong>No Carry In</strong>
+    </div>
+  `;
+}
+
+function renderRunningAudit() {
+  if (!els.runningAudit) return;
+
+  const totalBasePoints = finishedHoles.size * 3;
   let baseAwarded = 0;
-  for (const h of Array.from(finishedHoles)) {
+
+  for (const h of Array.from(finishedHoles).sort((a, b) => a - b)) {
     const idx = h - 1;
     const scores = players.map(p => p.scores[idx]).filter(Boolean);
     if (scores.some(s => s.firstOn)) baseAwarded++;
@@ -813,59 +706,211 @@ function simulateRound() {
     if (scores.some(s => s.putt)) baseAwarded++;
   }
 
-  const allValid = playerTotal === 54 && totalCarry === 0;
+  const carryOut = getCarryOut();
+  const totalCarry = carryOut.firstOn + carryOut.closest + carryOut.putt + carryOut.greenie;
+  const balanced = baseAwarded + totalCarry === totalBasePoints;
 
-  els.simResult.innerHTML = `
-    <div style="margin:1rem 0;padding:1rem;background:#e6f7e6;border-radius:8px;font-weight:600;color:#155724;">
-      SIMULATION SUCCESSFUL!<br>
-      18 holes • 54 total points<br>
-      Players: ${playerTotal} • Carry: ${totalCarry}<br>
-      <small style="color:#0a0">
-        VALIDATED: ${playerTotal} + ${totalCarry} = 54<br>
-        ${allValid ? 'All points awarded!' : 'ERROR'}
-      </small>
+  const carryLines = [];
+  if (carryOut.firstOn) carryLines.push(`First On: ${carryOut.firstOn}`);
+  if (carryOut.closest) carryLines.push(`Closest: ${carryOut.closest}`);
+  if (carryOut.putt) carryLines.push(`Putt: ${carryOut.putt}`);
+  if (carryOut.greenie) carryLines.push(`Greenie: ${carryOut.greenie}`);
+
+  els.runningAudit.innerHTML = `
+    <div class="${balanced ? 'audit-good' : 'audit-bad'}" style="margin-top:0.5rem;font-size:0.85rem;">
+      <strong>Round:</strong> ${baseAwarded} base + ${totalCarry} carry = ${baseAwarded + totalCarry} / ${totalBasePoints}<br>
+      <small>${carryLines.length ? carryLines.join(' | ') : 'No carries'}</small>
     </div>
   `;
-
-  logScreen('SIMULATION COMPLETE');
 }
 
+// ==== DEBUG CARRY TABLE ====
+function renderDebugCarryTable() {
+  if (!debugMode || !els.debugPanel) return;
+
+  const table = document.createElement('table');
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  table.style.marginTop = '1rem';
+  table.style.fontSize = '0.8rem';
+
+  const header = table.insertRow();
+  ['Hole', 'Par', 'FirstOn', 'Closest', 'Putt', 'Carry In', 'Awarded', 'Carry Out'].forEach(text => {
+    const th = document.createElement('th');
+    th.textContent = text;
+    th.style.border = '1px solid #444';
+    th.style.padding = '4px';
+    th.style.background = '#333';
+    header.appendChild(th);
+  });
+
+  let cumulativeCarry = { firstOn: 0, closest: 0, putt: 0, greenie: 0 };
+  let totalAwarded = 0;
+
+  Array.from(finishedHoles).sort((a, b) => a - b).forEach(h => {
+    const idx = h - 1;
+    const par = courses[currentCourse].pars[idx];
+    const isPar3 = par === 3;
+    const scores = players.map(p => p.scores[idx]).filter(Boolean);
+
+    const row = table.insertRow();
+    row.style.background = h === currentHole ? '#2a2a2a' : '#1a1a1a';
+
+    const holeCell = row.insertCell(); holeCell.textContent = h;
+    const parCell = row.insertCell(); parCell.textContent = par;
+    const foCell = row.insertCell(); foCell.textContent = scores.some(s => s.firstOn) ? 'Check' : '—';
+    const clCell = row.insertCell(); clCell.textContent = scores.some(s => s.closest) ? 'Check' : '—';
+    const puCell = row.insertCell(); puCell.textContent = scores.some(s => s.putt) ? 'Check' : '—';
+
+    const carryInCell = row.insertCell();
+    carryInCell.textContent = `${cumulativeCarry.firstOn} | ${cumulativeCarry.closest} | ${cumulativeCarry.putt}${isPar3 ? ` | ${cumulativeCarry.greenie}` : ''}`;
+
+    let holeAwarded = 0;
+    if (scores.some(s => s.firstOn)) holeAwarded += 1;
+    if (scores.some(s => s.closest)) holeAwarded += 1;
+    if (scores.some(s => s.putt)) holeAwarded += 1;
+
+    const awardedCell = row.insertCell();
+    awardedCell.textContent = holeAwarded;
+    totalAwarded += holeAwarded;
+
+    if (!scores.some(s => s.firstOn)) {
+      if (isPar3) cumulativeCarry.greenie++;
+      else cumulativeCarry.firstOn++;
+    }
+    if (!scores.some(s => s.closest)) cumulativeCarry.closest++;
+    if (!scores.some(s => s.putt)) cumulativeCarry.putt++;
+
+    const carryOutCell = row.insertCell();
+    carryOutCell.textContent = `${cumulativeCarry.firstOn} | ${cumulativeCarry.closest} | ${cumulativeCarry.putt}${isPar3 ? ` | ${cumulativeCarry.greenie}` : ''}`;
+  });
+
+  const totalCarry = cumulativeCarry.firstOn + cumulativeCarry.closest + cumulativeCarry.putt + cumulativeCarry.greenie;
+  const totalPoints = finishedHoles.size * 3;
+  const balanced = totalAwarded + totalCarry === totalPoints;
+
+  const debugContent = document.getElementById('debugCarryTable') || document.createElement('div');
+  debugContent.id = 'debugCarryTable';
+  debugContent.innerHTML = '<h4 style="margin:0.5rem 0;color:#0f0">Carry Debug Table</h4>';
+  debugContent.appendChild(table);
+
+  const summary = document.createElement('div');
+  summary.style.marginTop = '0.5rem';
+  summary.style.color = balanced ? '#0f0' : '#f00';
+  summary.innerHTML = `<strong>Total:</strong> ${totalAwarded} base + ${totalCarry} carry = ${totalAwarded + totalCarry} / ${totalPoints}`;
+  debugContent.appendChild(summary);
+
+  const existing = document.getElementById('debugCarryTable');
+  if (existing) existing.replaceWith(debugContent);
+  else els.debugPanel.appendChild(debugContent);
+}
+
+// ==== POINT HANDLING ====
+function toggleScore(player, holeIdx, point) {
+  const score = player.scores[holeIdx];
+  const wasChecked = !!score[point];
+  const willBeChecked = !wasChecked;
+
+  // Prevent two players from getting the same point
+  if (willBeChecked) {
+    const otherPlayerHasIt = players.some((p, j) => {
+      return j !== players.indexOf(player) && p.scores[holeIdx] && p.scores[holeIdx][point];
+    });
+    if (otherPlayerHasIt) {
+      alert('Only one winner per point!');
+      return;
+    }
+  }
+
+  // Toggle the score
+  score[point] = willBeChecked;
+  save();
+  updateHole();  // This refreshes the table
+}
+
+
+function finishCurrentHole() {
+  finishedHoles.add(currentHole);
+  save();
+  updateHole();  // This MUST run
+}
+
+
 // ==== SYNC, EXPORT, SUMMARY ====
-function setupGameButtons() {
-  if (!inRound || currentCourse === null || !courses[currentCourse]) return;
+function setupSyncButtons() {
+  els.copyScores.onclick = () => {
+    const data = { 
+      players: players.map(p => ({ ...p, _cachedTotal: undefined })), 
+      currentHole, currentCourse, finishedHoles: Array.from(finishedHoles) 
+    };
+    navigator.clipboard.writeText(JSON.stringify(data)).then(() => alert('Copied to clipboard!'));
+  };
+
+  els.pasteScores.onclick = () => {
+    navigator.clipboard.readText().then(text => {
+      try {
+        const data = JSON.parse(text);
+        if (confirm(`Load scores for ${data.players.map(p=>p.name).join(', ')}?`)) {
+          players = data.players.map(p => ({ 
+            ...p, 
+            scores: Array(HOLES).fill(null).map(()=>({})), 
+            gir: Array(HOLES).fill(false), 
+            _cachedTotal: 0 
+          }));
+          currentHole = data.currentHole;
+          currentCourse = data.currentCourse;
+          finishedHoles = new Set(data.finishedHoles || []);
+          inRound = true;
+          els.manageRosterBtn.disabled = true;
+          precomputeAllTotals();
+          save();
+          updateHole();
+          alert('Scores synced!');
+        }
+      } catch (e) {
+        alert('Invalid data in clipboard');
+      }
+    }).catch(() => alert('Failed to read clipboard'));
+  };
 
   els.sendSMS.onclick = () => {
     const holeIdx = currentHole - 1;
     const par = courses[currentCourse].pars[holeIdx];
-    const isPar3 = par === 3;
-    let message = `BBB - H${currentHole} (P${par})\n\n`;
+    let message = `BBB Update - Hole ${currentHole} (Par ${par})\n\n`;
     players.forEach(p => {
       const s = p.scores[holeIdx] || {};
-      const pts = p._cachedHoleTotals?.[holeIdx] || 0;
+      const holePoints = calculateHolePoints(p, holeIdx);
       const notes = [];
-      if (s.firstOn) notes.push(isPar3 ? 'GR' : 'FO');
-      if (s.closest) notes.push('CL');
-      if (s.putt) notes.push('P');
-      message += `${p.name}: ${pts}${notes.length ? ` (${notes.join('/')})` : ''} | Run: ${getRunningTotal(p)}\n`;
+      if (s.firstOn) notes.push(par === 3 ? 'Greenie' : 'First On');
+      if (s.closest) notes.push('Closest');
+      if (s.putt) notes.push('Putt');
+      message += `${p.name}: ${holePoints} pts${notes.length ? `\n• ${notes.join('\n• ')}` : ''}\n\n`;
     });
-    const carryOut = getCarryInForHole(currentHole + 1);
-    const carryTotal = carryOut.firstOn + carryOut.closest + carryOut.putt + carryOut.greenie;
-    message += `\nCarry: ${carryTotal}\n\nStandings:\n`;
-    players.sort((a, b) => b._cachedTotal - a._cachedTotal);
-    players.forEach((p, i) => {
-      message += `${i+1}. ${p.name}: ${p._cachedTotal}\n`;
-    });
+    const carryOut = getCarryOut();
+    message += `Carry to next: ${carryOut.firstOn + carryOut.closest + carryOut.putt + carryOut.greenie}\n`;
     const phones = players.map(p => p.phone).filter(Boolean).join(',');
-    if (!phones) return alert('Add phone numbers');
+    if (!phones) return alert('Add phone numbers to roster');
     window.location.href = `sms:${phones}?body=${encodeURIComponent(message)}`;
   };
 
   els.exportCSV.onclick = exportToCSV;
 }
 
+function calculateHolePoints(p, holeIdx) {
+  const s = p.scores[holeIdx] || {};
+  const carryIn = getCarryInForHole();
+  const par = courses[currentCourse].pars[holeIdx];
+  const isPar3 = par === 3;
+  let pts = 0;
+  if (s.firstOn) { const carry = isPar3 ? carryIn.greenie : carryIn.firstOn; pts += 1 + carry; }
+  if (s.closest) pts += 1 + carryIn.closest;
+  if (s.putt) pts += 1 + carryIn.putt;
+  return pts;
+}
+
 function exportToCSV() {
   const course = courses[currentCourse];
-  let csv = `Hole,Par,Player,FO,CL,P,GR,GIR,HolePts,Run,Tot\n`;
+  let csv = `Hole,Par,Player,FirstOn,Closest,Putt,Greenie,GIR,Points\n`;
   for (let h = 0; h < HOLES; h++) {
     if (!finishedHoles.has(h+1)) continue;
     const par = course.pars[h];
@@ -873,10 +918,8 @@ function exportToCSV() {
     players.forEach(p => {
       const s = p.scores[h] || {};
       const gir = p.gir[h] ? 1 : 0;
-      const holePts = p._cachedHoleTotals?.[h] || 0;
-      const run = getRunningTotal(p);
-      const tot = p._cachedTotal || 0;
-      csv += `${h+1},${par},${p.name},${s.firstOn||0},${s.closest||0},${s.putt||0},${isPar3 && s.firstOn ? 1 : 0},${gir},${holePts},${run},${tot}\n`;
+      const pts = calculateHolePoints(p, h);
+      csv += `${h+1},${par},${p.name},${s.firstOn||0},${s.closest||0},${s.putt||0},${isPar3 && s.firstOn ? 1 : 0},${gir},${pts}\n`;
     });
   }
   const blob = new Blob([csv], { type: 'text/csv' });
@@ -896,26 +939,23 @@ function showSummary() {
   els.leaderboard.innerHTML = '';
   totals.forEach(t => {
     const li = document.createElement('li');
-    li.textContent = `${t.name}: ${t.points} pts`;
+    li.textContent = `${t.name}: ${t.points} point${t.points===1?'':'s'}`;
     els.leaderboard.appendChild(li);
   });
-  els.historyBtn.disabled = false;
 }
 
 els.completeRound.addEventListener('click', () => {
   if (finishedHoles.size === HOLES) {
     precomputeAllTotals();
     showSummary();
-    els.historyBtn.disabled = false;
   } else {
-    alert(`Finish all ${HOLES} holes.`);
+    alert(`Finish all ${HOLES} holes before completing round.`);
   }
 });
 
 els.exitRound.addEventListener('click', () => {
-  if (confirm('Exit without saving?')) {
+  if (confirm('Exit without saving? All progress will be lost.')) {
     resetRound();
-    els.historyBtn.disabled = false;
     location.reload();
   }
 });
@@ -934,9 +974,15 @@ els.saveRound.addEventListener('click', () => {
   roundHistory.unshift(round);
   saveHistory();
   resetRound();
-  els.historyBtn.disabled = false;
-  alert('Round saved!');
+  alert('Round saved to history!');
   location.reload();
+});
+
+els.restart.addEventListener('click', () => {
+  if (confirm('Restart app and clear ALL data?')) {
+    localStorage.clear();
+    location.reload();
+  }
 });
 
 function resetRound() {
@@ -950,11 +996,11 @@ function resetRound() {
 
 // ==== NAVIGATION ====
 els.prevHole.addEventListener('click', () => { 
-  if (currentHole > 1) { currentHole--; precomputeAllTotals(); updateHole(); } 
+  if (currentHole > 1) { currentHole--; updateHole(); } 
 });
 
 els.nextHole.addEventListener('click', () => { 
-  if (currentHole < HOLES) { currentHole++; precomputeAllTotals(); updateHole(); } 
+  if (currentHole < HOLES) { currentHole++; updateHole(); } 
   else if (currentHole === HOLES && finishedHoles.has(HOLES)) { currentHole = 1; updateHole(); }
 });
 
@@ -964,37 +1010,14 @@ els.editHole.addEventListener('click', () => {
   if (!finishedHoles.has(currentHole)) return;
   finishedHoles.delete(currentHole);
   precomputeAllTotals();
-  players.forEach(p => p._cachedHoleTotals = {});
   save();
   updateHole();
-});
-
-// ==== DOM READY ====
-document.addEventListener('DOMContentLoaded', () => {
-  if (els.historyBtn) {
-    els.historyBtn.addEventListener('click', () => {
-      if (inRound) {
-        alert('Cannot view History during active round.');
-        return;
-      }
-      showHistory();
-    });
-  }
-  document.querySelectorAll('#backToSetup').forEach(btn => {
-    btn.addEventListener('click', () => {
-      hideAll();
-      els.courseSetup.classList.remove('hidden');
-      logScreen('BACK TO SETUP');
-    });
-  });
 });
 
 // ==== INIT ====
 initDarkMode();
 load(() => {
-  renderCourseSelect();
   hideAll();
   els.courseSetup.classList.remove('hidden');
-  els.historyBtn.disabled = false;
   logScreen('APP START');
 });

@@ -70,7 +70,7 @@ const els = {
   firstOnHeader: document.getElementById('firstOnHeader'),
 
   scoreTable: document.getElementById('scoreTable'),
-  holeSummary: document.getElementById('holeSummary'),
+  holeSummary: document.querySelector('.holeSummary'),
   runningAudit: document.getElementById('runningAudit'),
 
   sendSMS: document.getElementById('sendSMS'),
@@ -543,7 +543,9 @@ function updateHole() {
   const par = courses[currentCourse].pars[holeIdx];
   const isPar3 = par === 3;
 
-  els.holeDisplay.innerHTML = `Hole ${currentHole} (Par ${par}) • ${finishedHoles.size} finished`;
+  const courseName = courses[currentCourse].name;
+  els.holeDisplay.innerHTML = `<strong>${courseName}</strong> • Hole ${currentHole} (Par ${par}) • ${finishedHoles.size} finished`;
+
 
   els.firstOnHeader.textContent = isPar3 ? 'GR' : 'FO';
 
@@ -554,7 +556,8 @@ function updateHole() {
   const carryIn = getCarryInForHole(currentHole);
   renderTable(carryIn, isFinished);
   renderHoleSummary(carryIn, isFinished);
-  renderRunningAudit();
+  //renderRunningAudit();
+  renderRoundSummary(); // ADDED
 
   save();
   if (debugMode) renderDebugCarryTable();
@@ -646,7 +649,7 @@ function renderHoleSummary(carryIn, isFinished) {
     if (carryOut.greenie) carryOutLines.push(`GR: +${carryOut.greenie}`);
   }
 
-  els.holeSummary.innerHTML = isFinished ? `
+  const content = isFinished ? `
     <div class="summary-awarded">
       <strong>Awarded:</strong> ${awarded}<br>
       <strong>Carry:</strong> ${carryOutLines.length ? carryOutLines.join(', ') : '0'}
@@ -660,6 +663,8 @@ function renderHoleSummary(carryIn, isFinished) {
       <strong>No Carry In</strong>
     </div>
   `;
+
+  els.holeSummary.innerHTML = content;
 }
 
 function renderRunningAudit() {
@@ -673,7 +678,6 @@ function renderRunningAudit() {
   let baseAwarded = 0;
   const consumed = { firstOn: 0, closest: 0, putt: 0, greenie: 0 };
 
-  // Count awarded + consumed carries
   for (const h of Array.from(finishedHoles).sort((a, b) => a - b)) {
     const idx = h - 1;
     const scores = players.map(p => p.scores[idx]).filter(Boolean);
@@ -716,6 +720,50 @@ function renderRunningAudit() {
       ${totalOpen > 0 ? `<small><strong>Open:</strong> ${openLines.join(', ')}</small>` : '<small>No open carries</small>'}
     </div>
   `;
+}
+
+// NEW: ROUND SUMMARY
+function renderRoundSummary() {
+  const el = document.getElementById('roundSummary');
+  if (!el) return;
+
+  let awarded = 0, consumed = 0, open = 0;
+
+  finishedHoles.forEach(h => {
+    const idx = h - 1;
+    players.forEach(p => {
+      const s = p.scores[idx] || {};
+      if (s.firstOn) awarded++;
+      if (s.closest) awarded++;
+      if (s.putt) awarded++;
+    });
+  });
+
+  for (let h = 1; h <= HOLES; h++) {
+    if (!finishedHoles.has(h)) continue;
+    const carryIn = getCarryInForHole(h);
+    const idx = h - 1;
+    players.forEach(p => {
+      const s = p.scores[idx] || {};
+      if (s.firstOn && carryIn.firstOn) consumed += carryIn.firstOn;
+      if (s.closest && carryIn.closest) consumed += carryIn.closest;
+      if (s.putt && carryIn.putt) consumed += carryIn.putt;
+    });
+  }
+
+  const nextCarry = getCarryInForHole(currentHole + 1);
+  open = nextCarry.firstOn + nextCarry.closest + nextCarry.putt + nextCarry.greenie;
+
+  const expected = finishedHoles.size * 3;
+  const total = awarded + consumed + open;
+
+  el.innerHTML = `
+    <div style="font-size:0.9rem;line-height:1.5;">
+      <strong>Round:</strong> ${awarded} awarded + ${consumed} consumed + ${open} open = <strong>${total}</strong><br>
+      <small>${total === expected ? 'Checkmark' : 'Cross'} Expected: ${expected}</small>
+    </div>
+  `;
+  el.classList.remove('hidden');
 }
 
 // ==== POINT HANDLING ====

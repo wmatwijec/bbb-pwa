@@ -1,10 +1,10 @@
-const CACHE = 'bbb-golf-v10.1';
+const CACHE = 'bbb-golf-v21.1';  // NEW VERSION
 const FILES = [
   'index.html',
   'style.css',
   'app.js',
-  'manifest.json',
-  'pin.jpg'
+  'manifest.json'
+  // REMOVE pin.jpg
 ];
 
 self.addEventListener('install', e => {
@@ -26,4 +26,3 @@ self.addEventListener('fetch', e => {
     caches.match(e.request).then(response => response || fetch(e.request))
   );
 });
-

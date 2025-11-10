@@ -97,7 +97,6 @@ document.addEventListener('DOMContentLoaded', () => {
     addCourse: document.getElementById('addCourse'),
     nextToPlayers: document.getElementById('nextToPlayers'),
     playerSelect: document.getElementById('playerSelect'),
-    startGame: document.getElementById('startGame'),
     backToCourse: document.getElementById('backToCourse'),
 
     courseName: document.getElementById('courseName'),
@@ -383,7 +382,10 @@ document.addEventListener('DOMContentLoaded', () => {
     save();
   });
 
-  function renderPlayerSelect() {
+function renderPlayerSelect() {
+  console.log('%cDEBUG: renderPlayerSelect() called', 'color: orange; font-weight: bold');
+  console.log('Players:', players.length, 'Roster:', roster.length);
+
   els.playerSelect.innerHTML = '';
   roster.forEach((p, i) => {
     const div = document.createElement('div');
@@ -391,45 +393,46 @@ document.addEventListener('DOMContentLoaded', () => {
     els.playerSelect.appendChild(div);
   });
 
-  // === RE-CACHE startGame AFTER DOM UPDATE ===
-  els.startGame = document.getElementById('startGame'); // Re-query!
+  // === CRITICAL FIX: Re-query startGame AFTER DOM is in view ===
+  els.startGame = document.getElementById('startGame');
   if (!els.startGame) {
-    console.error('startGame button not found in DOM!');
+    console.error('%cFATAL: #startGame NOT FOUND! Check #playerSetup HTML', 'color: red');
     return;
   }
+  console.log('startGame button found and cached:', els.startGame);
 
-  // Clear old listeners to prevent duplicates
-  els.startGame.replaceWith(els.startGame.cloneNode(true));
-  els.startGame = document.getElementById('startGame');
+  // Remove old listeners
+  const freshBtn = els.startGame.cloneNode(true);
+  els.startGame.replaceWith(freshBtn);
+  els.startGame = freshBtn;
 
-  els.playerSelect.querySelectorAll('input').forEach(chk => {
+  // Attach checkbox listeners
+  els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
     chk.addEventListener('change', () => {
       const idx = parseInt(chk.dataset.index);
       const player = roster[idx];
+      console.log('Checkbox:', player.name, chk.checked ? 'checked' : 'unchecked');
+
       if (chk.checked) {
-        if (players.length >= MAX_PLAYERS) { 
-          chk.checked = false; 
-          alert(`Max ${MAX_PLAYERS} players`); 
-          return; 
+        if (players.length >= MAX_PLAYERS) {
+          chk.checked = false;
+          alert(`Max ${MAX_PLAYERS} players`);
+          return;
         }
-        players.push({ 
-          ...player, 
-          scores: Array(HOLES).fill(null).map(() => ({})), 
-          gir: Array(HOLES).fill(false), 
-          _cachedTotal: 0,
-          _cachedHoleTotals: {}
-        });
+        players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
       } else {
-        players = players.filter(pl => pl.name !== player.name);
+        players = players.filter(p => p.name !== player.name);
       }
-      // === UPDATE BUTTON STATE ===
+
       els.startGame.disabled = players.length < 2;
+      console.log('Button disabled:', els.startGame.disabled, '| Players:', players.length);
       save();
     });
   });
 
   // Initial state
   els.startGame.disabled = players.length < 2;
+  console.log('Initial button state:', els.startGame.disabled ? 'disabled' : 'enabled');
 }
 
   els.nextToPlayers.addEventListener('click', () => {

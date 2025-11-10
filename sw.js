@@ -1,28 +1,29 @@
-const CACHE = 'bbb-golf-v21.1';  // NEW VERSION
-const FILES = [
-  'index.html',
-  'style.css',
-  'app.js',
-  'manifest.json'
-  // REMOVE pin.jpg
-];
+// sw.js — FORCE FRESH PWA LOAD
+const CACHE_NAME = 'bbb-golf-v21.1-clean';
 
-self.addEventListener('install', e => {
+self.addEventListener('install', (e) => {
+  console.log('SW: Installing new version');
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+  console.log('SW: Activating new version');
   e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(FILES))
+    caches.keys().then((names) => {
+      return Promise.all(
+        names.map((name) => {
+          if (name !== CACHE_NAME) {
+            console.log('SW: Deleting old cache', name);
+            return caches.delete(name);
+          }
+        })
+      );
+    }).then(() => self.clients.claim())
   );
 });
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.map(key => key !== CACHE ? caches.delete(key) : null)
-    ))
-  );
-});
-
-self.addEventListener('fetch', e => {
+self.addEventListener('fetch', (e) => {
   e.respondWith(
-    caches.match(e.request).then(response => response || fetch(e.request))
+    fetch(e.request).catch(() => caches.match(e.request))
   );
 });

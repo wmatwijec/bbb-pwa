@@ -1,6 +1,22 @@
 // app.js — BBB PWA v21.1 — FINAL: FULLY SAFE DOM + iOS PWA FIXED
 console.log("BBB PWA v21.1 — FINAL FIX: DOM SAFE + SERVICE WORKER");
 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const badge = document.createElement('div');
+  badge.style.cssText = `
+    position:fixed;top:10px;right:10px;
+    background:#0f0;color:#000;padding:6px 10px;
+    font-size:12px;font-weight:bold;border-radius:6px;
+    z-index:9999;pointer-events:none;
+  `;
+  badge.textContent = 'v21.1 CLEAN';
+  document.body.appendChild(badge);
+});
+
+
+
+
 // === SERVICE WORKER REGISTRATION ===
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

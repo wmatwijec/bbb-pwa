@@ -1,11 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BBB Golf</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.png" />
+
+  <script>
+  (function () {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+    script.onload = function () { eruda.init(); };
+    document.body.appendChild(script);
+    })();
+  </script>
+
+
+
   <style>
     :root {
       --bg: #f4f4f4;

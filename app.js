@@ -1,14 +1,7 @@
 // app.js — BBB PWA v21.1 — FINAL: FULLY SAFE DOM + iOS PWA FIXED
 console.log("BBB PWA v21.1 — FINAL FIX: DOM SAFE + SERVICE WORKER");
 
-// === SERVICE WORKER REGISTRATION ===
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js')
-      .then(reg => console.log('SW registered', reg))
-      .catch(err => console.log('SW failed', err));
-  });
-}
+
 
 // FORCE localStorage IN PWA
 if (!window.localStorage) {

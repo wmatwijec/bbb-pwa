@@ -1,5 +1,17 @@
 console.log("BBB PWA v21.0 - CONSUMED + OPEN CARRIES + DARK MODE FIX");
 
+
+// FORCE localStorage IN PWA
+if (!window.localStorage) {
+  window.localStorage = {
+    getItem: () => null,
+    setItem: () => {},
+    removeItem: () => {}
+  };
+}
+
+
+
 function logScreen(name) {
   console.log(`%cSCREEN: ${name}`, 'color: cyan; font-weight: bold');
   console.log('State:', {

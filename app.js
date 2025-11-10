@@ -351,23 +351,34 @@ document.addEventListener('DOMContentLoaded', () => {
     els.startHoleModal.classList.add('hidden');
   }
 
-  function renderCourseSelect() {
-    els.courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
-    courses.forEach((c, i) => {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = c.name;
-      els.courseSelect.appendChild(opt);
-    });
-    const saved = localStorage.getItem('bbb_currentCourse');
-    if (saved !== null && courses[saved]) {
-      els.courseSelect.value = saved;
-      currentCourse = parseInt(saved);
-      els.nextToPlayers.disabled = false;
-    } else {
-      els.nextToPlayers.disabled = true;
-    }
+ function renderCourseSelect() {
+  console.log('Rendering course select. Courses:', courses.length);
+  els.courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+  
+  if (courses.length === 0) {
+    console.error('NO COURSES TO RENDER!');
+    els.courseSelect.innerHTML += '<option disabled>No courses available</option>';
+    return;
   }
+
+  courses.forEach((c, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = c.name;
+    els.courseSelect.appendChild(opt);
+  });
+
+  const saved = localStorage.getItem('bbb_currentCourse');
+  if (saved !== null && courses[parseInt(saved)]) {
+    els.courseSelect.value = saved;
+    currentCourse = parseInt(saved);
+    els.nextToPlayers.disabled = false;
+    console.log('Restored course:', courses[currentCourse].name);
+  } else {
+    els.nextToPlayers.disabled = true;
+  }
+}
+
 
   els.courseSelect.addEventListener('change', () => {
     const val = els.courseSelect.value;
@@ -1040,12 +1051,54 @@ function renderPlayerSelect() {
     });
   });
 
-  // ==== INIT ===
-  load(() => {
-    renderCourseSelect();
-    hideAll();
-    els.courseSetup.classList.remove('hidden');
-    els.historyBtn.disabled = false;
-    logScreen('APP START');
-  });
+  
+  // ==== LOAD ====
+function load(callback) {
+  console.log('%cLOAD: Starting data restore', 'color: cyan; font-weight: bold');
+
+  // === ROSTER ===
+  const savedRoster = localStorage.getItem('bbb_roster');
+  if (!savedRoster || savedRoster === 'undefined') {
+    console.log('No roster found → using defaults');
+    roster = [...PREDEFINED_ROSTER];
+    localStorage.setItem('bbb_roster', JSON.stringify(roster));
+  } else {
+    try {
+      roster = JSON.parse(savedRoster);
+      console.log('Roster loaded:', roster.length, 'players');
+    } catch (e) {
+      console.error('Roster parse failed:', e);
+      roster = [...PREDEFINED_ROSTER];
+      localStorage.setItem('bbb_roster', JSON.stringify(roster));
+    }
+  }
+
+  // === COURSES ===
+  const savedCourses = localStorage.getItem('bbb_courses');
+  if (!savedCourses || savedCourses === 'undefined') {
+    console.log('No courses found → using defaults');
+    courses = [...PREDEFINED_COURSES];
+    localStorage.setItem('bbb_courses', JSON.stringify(courses));
+  } else {
+    try {
+      courses = JSON.parse(savedCourses);
+      console.log('Courses loaded:', courses.length, 'courses');
+    } catch (e) {
+      console.error('Courses parse failed:', e);
+      courses = [...PREDEFINED_COURSES];
+      localStorage.setItem('bbb_courses', JSON.stringify(courses));
+    }
+  }
+
+  // === CLEAN UP OLD STATE ===
+  localStorage.removeItem('bbb');
+  inRound = false;
+  players = [];
+  currentCourse = null;
+  currentHole = 1;
+  finishedHoles.clear();
+
+  console.log('%cLOAD: Complete', 'color: green; font-weight: bold');
+  if (callback) callback();
+}
 });

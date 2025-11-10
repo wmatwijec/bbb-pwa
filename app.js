@@ -1,22 +1,6 @@
 // app.js — BBB PWA v21.1 — FINAL: FULLY SAFE DOM + iOS PWA FIXED
 console.log("BBB PWA v21.1 — FINAL FIX: DOM SAFE + SERVICE WORKER");
 
-
-document.addEventListener('DOMContentLoaded', () => {
-  const badge = document.createElement('div');
-  badge.style.cssText = `
-    position:fixed;top:10px;right:10px;
-    background:#0f0;color:#000;padding:6px 10px;
-    font-size:12px;font-weight:bold;border-radius:6px;
-    z-index:9999;pointer-events:none;
-  `;
-  badge.textContent = 'v21.1 CLEAN';
-  document.body.appendChild(badge);
-});
-
-
-
-
 // === SERVICE WORKER REGISTRATION ===
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -46,6 +30,20 @@ function logScreen(name) {
   });
 }
 
+// === PREDEFINED DATA (MUST BE OUTSIDE DOMContentLoaded) ===
+const PREDEFINED_COURSES = [
+  { name: "Home Course", pars: [4,4,3,5,4,3,4,4,5, 4,3,4,5,4,3,4,4,5] },
+  { name: "Lakes",       pars: [4,3,4,5,4,3,4,4,5, 3,4,5,4,3,4,5,4,3] },
+  { name: "Hills",       pars: [5,4,3,4,3,4,5,4,3, 4,5,3,4,4,3,5,4,3] }
+];
+
+const PREDEFINED_ROSTER = [
+  { name: "Walt",   phone: "555-1111", email: "walt@example.com" },
+  { name: "Tim",    phone: "555-2222", email: "tim@example.com" },
+  { name: "Frank",  phone: "555-3333", email: "frank@example.com" },
+  { name: "Sally",  phone: "555-4444", email: "sally@example.com" }
+];
+
 // ==== State ====
 let roster = [];
 let players = [];
@@ -62,11 +60,60 @@ let inRound = false;
 // ==== DOM Cache ====
 let els = {};
 
+// ==== LOAD FUNCTION (OUTSIDE DOMContentLoaded) ====
+function load(callback) {
+  console.log('%cLOAD: Starting data restore', 'color: cyan; font-weight: bold');
+
+  // === ROSTER ===
+  const savedRoster = localStorage.getItem('bbb_roster');
+  if (!savedRoster || savedRoster === 'undefined' || savedRoster === 'null') {
+    console.log('No roster → using defaults');
+    roster = [...PREDEFINED_ROSTER];
+    localStorage.setItem('bbb_roster', JSON.stringify(roster));
+  } else {
+    try {
+      roster = JSON.parse(savedRoster);
+      console.log('Roster loaded:', roster.length);
+    } catch (e) {
+      console.error('Roster parse error:', e);
+      roster = [...PREDEFINED_ROSTER];
+      localStorage.setItem('bbb_roster', JSON.stringify(roster));
+    }
+  }
+
+  // === COURSES ===
+  const savedCourses = localStorage.getItem('bbb_courses');
+  if (!savedCourses || savedCourses === 'undefined' || savedCourses === 'null') {
+    console.log('No courses → using defaults');
+    courses = [...PREDEFINED_COURSES];
+    localStorage.setItem('bbb_courses', JSON.stringify(courses));
+  } else {
+    try {
+      courses = JSON.parse(savedCourses);
+      console.log('Courses loaded:', courses.length);
+    } catch (e) {
+      console.error('Courses parse error:', e);
+      courses = [...PREDEFINED_COURSES];
+      localStorage.setItem('bbb_courses', JSON.stringify(courses));
+    }
+  }
+
+  localStorage.removeItem('bbb');
+  inRound = false;
+  players = [];
+  currentCourse = null;
+  currentHole = 1;
+  finishedHoles.clear();
+
+  console.log('%cLOAD: Complete', 'color: green; font-weight: bold');
+  if (callback) callback();
+}
+
 // ==== DOM READY — EVERYTHING INSIDE ====
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM ready — initializing app');
 
-  // === BUILD ELS CACHE ===
+  // === BUILD ELS CACHE (NO startGame here) ===
   els = {
     courseSetup: document.getElementById('courseSetup'),
     playerSetup: document.getElementById('playerSetup'),
@@ -112,7 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     scoreTable: document.getElementById('scoreTable'),
     holeSummary: document.querySelector('.holeSummary'),
-    runningAudit: document.getElementById('runningAudit'),
     roundSummary: document.getElementById('roundSummary'),
 
     sendSMS: document.getElementById('sendSMS'),
@@ -127,24 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
     debugPanel: document.getElementById('debugPanel'),
     debugOutput: document.getElementById('debugOutput'),
     closeDebug: document.getElementById('closeDebug'),
-
-    simulateBtn: document.getElementById('simulateBtn'),
     simResult: document.getElementById('simResult')
   };
-
-  // ==== PREDEFINED COURSES & ROSTER ====
-  const PREDEFINED_COURSES = [
-    { name: "Home Course", pars: [4,4,3,5,4,3,4,4,5, 4,3,4,5,4,3,4,4,5] },
-    { name: "Lakes",       pars: [4,3,4,5,4,3,4,4,5, 3,4,5,4,3,4,5,4,3] },
-    { name: "Hills",       pars: [5,4,3,4,3,4,5,4,3, 4,5,3,4,4,3,5,4,3] }
-  ];
-
-  const PREDEFINED_ROSTER = [
-    { name: "Walt",   phone: "555-1111", email: "walt@example.com" },
-    { name: "Tim",    phone: "555-2222", email: "tim@example.com" },
-    { name: "Frank",  phone: "555-3333", email: "frank@example.com" },
-    { name: "Sally",  phone: "555-4444", email: "sally@example.com" }
-  ];
 
   // ==== DARK MODE, CB, DEBUG ====
   function initDarkMode() {
@@ -204,11 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==== ROSTER, HISTORY, LOAD/SAVE ====
-  function loadRoster() {
-    const saved = localStorage.getItem('bbb_roster');
-    roster = saved ? JSON.parse(saved) : [];
-    renderRoster();
-  }
   function saveRoster() {
     localStorage.setItem('bbb_roster', JSON.stringify(roster));
   }
@@ -247,10 +272,6 @@ document.addEventListener('DOMContentLoaded', () => {
     logScreen('COURSE SETUP');
   });
 
-  function loadHistory() {
-    const saved = localStorage.getItem('bbb_history');
-    roundHistory = saved ? JSON.parse(saved) : [];
-  }
   function saveHistory() {
     localStorage.setItem('bbb_history', JSON.stringify(roundHistory));
   }
@@ -311,34 +332,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }));
   }
 
-  // ==== LOAD ====
-  function load(callback) {
-    const savedRoster = localStorage.getItem('bbb_roster');
-    if (!savedRoster) {
-      roster = [...PREDEFINED_ROSTER];
-      localStorage.setItem('bbb_roster', JSON.stringify(roster));
-    } else {
-      try { roster = JSON.parse(savedRoster); } catch { roster = [...PREDEFINED_ROSTER]; }
-    }
-
-    const savedCourses = localStorage.getItem('bbb_courses');
-    if (!savedCourses) {
-      courses = [...PREDEFINED_COURSES];
-      localStorage.setItem('bbb_courses', JSON.stringify(courses));
-    } else {
-      try { courses = JSON.parse(savedCourses); } catch { courses = [...PREDEFINED_COURSES]; }
-    }
-
-    localStorage.removeItem('bbb');
-    inRound = false;
-    players = [];
-    currentCourse = null;
-    currentHole = 1;
-    finishedHoles.clear();
-
-    if (callback) callback();
-  }
-
   // ==== FLOW ====
   function hideAll() {
     els.courseSetup.classList.add('hidden');
@@ -351,34 +344,33 @@ document.addEventListener('DOMContentLoaded', () => {
     els.startHoleModal.classList.add('hidden');
   }
 
- function renderCourseSelect() {
-  console.log('Rendering course select. Courses:', courses.length);
-  els.courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
-  
-  if (courses.length === 0) {
-    console.error('NO COURSES TO RENDER!');
-    els.courseSelect.innerHTML += '<option disabled>No courses available</option>';
-    return;
+  function renderCourseSelect() {
+    console.log('Rendering course select. Courses:', courses.length);
+    els.courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
+    
+    if (courses.length === 0) {
+      console.error('NO COURSES TO RENDER!');
+      els.courseSelect.innerHTML += '<option disabled>No courses available</option>';
+      return;
+    }
+
+    courses.forEach((c, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = c.name;
+      els.courseSelect.appendChild(opt);
+    });
+
+    const saved = localStorage.getItem('bbb_currentCourse');
+    if (saved !== null && courses[parseInt(saved)]) {
+      els.courseSelect.value = saved;
+      currentCourse = parseInt(saved);
+      els.nextToPlayers.disabled = false;
+      console.log('Restored course:', courses[currentCourse].name);
+    } else {
+      els.nextToPlayers.disabled = true;
+    }
   }
-
-  courses.forEach((c, i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = c.name;
-    els.courseSelect.appendChild(opt);
-  });
-
-  const saved = localStorage.getItem('bbb_currentCourse');
-  if (saved !== null && courses[parseInt(saved)]) {
-    els.courseSelect.value = saved;
-    currentCourse = parseInt(saved);
-    els.nextToPlayers.disabled = false;
-    console.log('Restored course:', courses[currentCourse].name);
-  } else {
-    els.nextToPlayers.disabled = true;
-  }
-}
-
 
   els.courseSelect.addEventListener('change', () => {
     const val = els.courseSelect.value;
@@ -393,58 +385,55 @@ document.addEventListener('DOMContentLoaded', () => {
     save();
   });
 
-function renderPlayerSelect() {
-  console.log('%cDEBUG: renderPlayerSelect() called', 'color: orange; font-weight: bold');
-  console.log('Players:', players.length, 'Roster:', roster.length);
+  function renderPlayerSelect() {
+    console.log('%cDEBUG: renderPlayerSelect() called', 'color: orange; font-weight: bold');
+    console.log('Players:', players.length, 'Roster:', roster.length);
 
-  els.playerSelect.innerHTML = '';
-  roster.forEach((p, i) => {
-    const div = document.createElement('div');
-    div.innerHTML = `<label><input type="checkbox" data-index="${i}" ${players.find(pl => pl.name === p.name) ? 'checked' : ''}> ${p.name}</label>`;
-    els.playerSelect.appendChild(div);
-  });
-
-  // === CRITICAL FIX: Re-query startGame AFTER DOM is in view ===
-  els.startGame = document.getElementById('startGame');
-  if (!els.startGame) {
-    console.error('%cFATAL: #startGame NOT FOUND! Check #playerSetup HTML', 'color: red');
-    return;
-  }
-  console.log('startGame button found and cached:', els.startGame);
-
-  // Remove old listeners
-  const freshBtn = els.startGame.cloneNode(true);
-  els.startGame.replaceWith(freshBtn);
-  els.startGame = freshBtn;
-
-  // Attach checkbox listeners
-  els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-    chk.addEventListener('change', () => {
-      const idx = parseInt(chk.dataset.index);
-      const player = roster[idx];
-      console.log('Checkbox:', player.name, chk.checked ? 'checked' : 'unchecked');
-
-      if (chk.checked) {
-        if (players.length >= MAX_PLAYERS) {
-          chk.checked = false;
-          alert(`Max ${MAX_PLAYERS} players`);
-          return;
-        }
-        players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
-      } else {
-        players = players.filter(p => p.name !== player.name);
-      }
-
-      els.startGame.disabled = players.length < 2;
-      console.log('Button disabled:', els.startGame.disabled, '| Players:', players.length);
-      save();
+    els.playerSelect.innerHTML = '';
+    roster.forEach((p, i) => {
+      const div = document.createElement('div');
+      div.innerHTML = `<label><input type="checkbox" data-index="${i}" ${players.find(pl => pl.name === p.name) ? 'checked' : ''}> ${p.name}</label>`;
+      els.playerSelect.appendChild(div);
     });
-  });
 
-  // Initial state
-  els.startGame.disabled = players.length < 2;
-  console.log('Initial button state:', els.startGame.disabled ? 'disabled' : 'enabled');
-}
+    // === CRITICAL: Re-query startGame AFTER DOM is in view ===
+    els.startGame = document.getElementById('startGame');
+    if (!els.startGame) {
+      console.error('%cFATAL: #startGame NOT FOUND!', 'color: red');
+      return;
+    }
+    console.log('startGame button found:', els.startGame);
+
+    const freshBtn = els.startGame.cloneNode(true);
+    els.startGame.replaceWith(freshBtn);
+    els.startGame = freshBtn;
+
+    els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+      chk.addEventListener('change', () => {
+        const idx = parseInt(chk.dataset.index);
+        const player = roster[idx];
+        console.log('Checkbox:', player.name, chk.checked ? 'checked' : 'unchecked');
+
+        if (chk.checked) {
+          if (players.length >= MAX_PLAYERS) {
+            chk.checked = false;
+            alert(`Max ${MAX_PLAYERS} players`);
+            return;
+          }
+          players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
+        } else {
+          players = players.filter(p => p.name !== player.name);
+        }
+
+        els.startGame.disabled = players.length < 2;
+        console.log('Button disabled:', els.startGame.disabled, '| Players:', players.length);
+        save();
+      });
+    });
+
+    els.startGame.disabled = players.length < 2;
+    console.log('Initial button state:', els.startGame.disabled ? 'disabled' : 'enabled');
+  }
 
   els.nextToPlayers.addEventListener('click', () => {
     if (currentCourse === null) return alert('Select a course');
@@ -601,7 +590,6 @@ function renderPlayerSelect() {
     });
   }
 
-  // ==== RUNNING TOTAL (UP TO CURRENT HOLE) ====
   function getRunningTotal(player) {
     let sum = 0;
     for (let h = 1; h <= currentHole; h++) {
@@ -612,7 +600,6 @@ function renderPlayerSelect() {
     return sum;
   }
 
-  // ==== RENDERING ====
   function updateHole() {
     if (!inRound || players.length === 0 || currentCourse === null || !courses[currentCourse]) return;
 
@@ -782,7 +769,6 @@ function renderPlayerSelect() {
     el.classList.remove('hidden');
   }
 
-  // ==== POINT HANDLING ====
   function toggleScore(player, holeIdx, point) {
     const score = player.scores[holeIdx];
     const wasChecked = !!score[point];
@@ -811,7 +797,6 @@ function renderPlayerSelect() {
     updateHole();
   }
 
-  // ==== SIMULATION MODE ====
   function simulateRound() {
     if (inRound) {
       if (!confirm('End current round and start simulation?')) return;
@@ -868,17 +853,6 @@ function renderPlayerSelect() {
     const carry = getCarryInForHole(HOLES + 1);
     const totalCarry = carry.firstOn + carry.closest + carry.putt + carry.greenie;
 
-    let baseAwarded = 0;
-    for (const h of Array.from(finishedHoles)) {
-      const idx = h - 1;
-      const scores = players.map(p => p.scores[idx]).filter(Boolean);
-      if (scores.some(s => s.firstOn)) baseAwarded++;
-      if (scores.some(s => s.closest)) baseAwarded++;
-      if (scores.some(s => s.putt)) baseAwarded++;
-    }
-
-    const allValid = playerTotal === 54 && totalCarry === 0;
-
     els.simResult.innerHTML = `
       <div style="margin:1rem 0;padding:1rem;background:#e6f7e6;border-radius:8px;font-weight:600;color:#155724;">
         SIMULATION SUCCESSFUL!<br>
@@ -886,7 +860,7 @@ function renderPlayerSelect() {
         Players: ${playerTotal} • Carry: ${totalCarry}<br>
         <small style="color:#0a0">
           VALIDATED: ${playerTotal} + ${totalCarry} = 54<br>
-          ${allValid ? 'All points awarded!' : 'ERROR'}
+          ${playerTotal === 54 && totalCarry === 0 ? 'All points awarded!' : 'ERROR'}
         </small>
       </div>
     `;
@@ -894,7 +868,6 @@ function renderPlayerSelect() {
     logScreen('SIMULATION COMPLETE');
   }
 
-  // ==== SYNC, EXPORT, SUMMARY ====
   function setupGameButtons() {
     if (!inRound || currentCourse === null || !courses[currentCourse]) return;
 
@@ -1012,7 +985,6 @@ function renderPlayerSelect() {
     finishedHoles.clear();
   }
 
-  // ==== NAVIGATION ====
   els.prevHole.addEventListener('click', () => { 
     if (currentHole > 1) { currentHole--; precomputeAllTotals(); updateHole(); } 
   });
@@ -1033,7 +1005,6 @@ function renderPlayerSelect() {
     updateHole();
   });
 
-  // === HISTORY BUTTON ===
   els.historyBtn.addEventListener('click', () => {
     if (inRound) {
       alert('Cannot view History during active round.');
@@ -1042,7 +1013,6 @@ function renderPlayerSelect() {
     showHistory();
   });
 
-  // === BACK TO SETUP BUTTONS ===
   els.backToSetup.forEach(btn => {
     btn.addEventListener('click', () => {
       hideAll();
@@ -1051,54 +1021,12 @@ function renderPlayerSelect() {
     });
   });
 
-  
-  // ==== LOAD ====
-function load(callback) {
-  console.log('%cLOAD: Starting data restore', 'color: cyan; font-weight: bold');
-
-  // === ROSTER ===
-  const savedRoster = localStorage.getItem('bbb_roster');
-  if (!savedRoster || savedRoster === 'undefined') {
-    console.log('No roster found → using defaults');
-    roster = [...PREDEFINED_ROSTER];
-    localStorage.setItem('bbb_roster', JSON.stringify(roster));
-  } else {
-    try {
-      roster = JSON.parse(savedRoster);
-      console.log('Roster loaded:', roster.length, 'players');
-    } catch (e) {
-      console.error('Roster parse failed:', e);
-      roster = [...PREDEFINED_ROSTER];
-      localStorage.setItem('bbb_roster', JSON.stringify(roster));
-    }
-  }
-
-  // === COURSES ===
-  const savedCourses = localStorage.getItem('bbb_courses');
-  if (!savedCourses || savedCourses === 'undefined') {
-    console.log('No courses found → using defaults');
-    courses = [...PREDEFINED_COURSES];
-    localStorage.setItem('bbb_courses', JSON.stringify(courses));
-  } else {
-    try {
-      courses = JSON.parse(savedCourses);
-      console.log('Courses loaded:', courses.length, 'courses');
-    } catch (e) {
-      console.error('Courses parse failed:', e);
-      courses = [...PREDEFINED_COURSES];
-      localStorage.setItem('bbb_courses', JSON.stringify(courses));
-    }
-  }
-
-  // === CLEAN UP OLD STATE ===
-  localStorage.removeItem('bbb');
-  inRound = false;
-  players = [];
-  currentCourse = null;
-  currentHole = 1;
-  finishedHoles.clear();
-
-  console.log('%cLOAD: Complete', 'color: green; font-weight: bold');
-  if (callback) callback();
-}
+  // ==== INIT ===
+  load(() => {
+    renderCourseSelect();
+    hideAll();
+    els.courseSetup.classList.remove('hidden');
+    els.historyBtn.disabled = false;
+    logScreen('APP START');
+  });
 });

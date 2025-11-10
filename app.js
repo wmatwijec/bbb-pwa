@@ -384,34 +384,53 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function renderPlayerSelect() {
-    els.playerSelect.innerHTML = '';
-    roster.forEach((p, i) => {
-      const div = document.createElement('div');
-      div.innerHTML = `<label><input type="checkbox" data-index="${i}" ${players.find(pl => pl.name === p.name) ? 'checked' : ''}> ${p.name}</label>`;
-      els.playerSelect.appendChild(div);
-    });
-    els.playerSelect.querySelectorAll('input').forEach(chk => {
-      chk.addEventListener('change', () => {
-        const idx = parseInt(chk.dataset.index);
-        const player = roster[idx];
-        if (chk.checked) {
-          if (players.length >= MAX_PLAYERS) { chk.checked = false; alert(`Max ${MAX_PLAYERS} players`); return; }
-          players.push({ 
-            ...player, 
-            scores: Array(HOLES).fill(null).map(() => ({})), 
-            gir: Array(HOLES).fill(false), 
-            _cachedTotal: 0,
-            _cachedHoleTotals: {}
-          });
-        } else {
-          players = players.filter(pl => pl.name !== player.name);
-        }
-        els.startGame.disabled = players.length < 2;
-        save();
-      });
-    });
-    els.startGame.disabled = players.length < 2;
+  els.playerSelect.innerHTML = '';
+  roster.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.innerHTML = `<label><input type="checkbox" data-index="${i}" ${players.find(pl => pl.name === p.name) ? 'checked' : ''}> ${p.name}</label>`;
+    els.playerSelect.appendChild(div);
+  });
+
+  // === RE-CACHE startGame AFTER DOM UPDATE ===
+  els.startGame = document.getElementById('startGame'); // Re-query!
+  if (!els.startGame) {
+    console.error('startGame button not found in DOM!');
+    return;
   }
+
+  // Clear old listeners to prevent duplicates
+  els.startGame.replaceWith(els.startGame.cloneNode(true));
+  els.startGame = document.getElementById('startGame');
+
+  els.playerSelect.querySelectorAll('input').forEach(chk => {
+    chk.addEventListener('change', () => {
+      const idx = parseInt(chk.dataset.index);
+      const player = roster[idx];
+      if (chk.checked) {
+        if (players.length >= MAX_PLAYERS) { 
+          chk.checked = false; 
+          alert(`Max ${MAX_PLAYERS} players`); 
+          return; 
+        }
+        players.push({ 
+          ...player, 
+          scores: Array(HOLES).fill(null).map(() => ({})), 
+          gir: Array(HOLES).fill(false), 
+          _cachedTotal: 0,
+          _cachedHoleTotals: {}
+        });
+      } else {
+        players = players.filter(pl => pl.name !== player.name);
+      }
+      // === UPDATE BUTTON STATE ===
+      els.startGame.disabled = players.length < 2;
+      save();
+    });
+  });
+
+  // Initial state
+  els.startGame.disabled = players.length < 2;
+}
 
   els.nextToPlayers.addEventListener('click', () => {
     if (currentCourse === null) return alert('Select a course');

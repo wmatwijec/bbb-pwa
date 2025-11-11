@@ -63,47 +63,49 @@ let inRound = false;
 // ==== DOM Cache ====
 let els = {};
 
-// ==== LOAD FUNCTION (OUTSIDE DOMContentLoaded) ====
 function load(callback) {
   console.log('%cLOAD: Starting', 'color: cyan');
 
-  // === SAFE ROSTER LOAD ===
+  // === SAFE ROSTER ===
   try {
-    const savedRoster = localStorage.getItem('bbb_roster');
-    if (savedRoster && savedRoster !== 'undefined' && savedRoster !== 'null') {
-      roster = JSON.parse(savedRoster);
-      console.log('Roster loaded:', roster.length);
-    } else {
-      throw new Error('No roster');
-    }
+    const saved = localStorage.getItem('bbb_roster');
+    if (saved && saved !== 'undefined' && saved !== 'null') {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        roster = parsed;
+        console.log('Roster loaded:', roster.length);
+      } else throw new Error();
+    } else throw new Error();
   } catch (e) {
-    console.warn('Roster failed, using defaults');
+    console.warn('Roster corrupted — using defaults');
     roster = [...PREDEFINED_ROSTER];
     localStorage.setItem('bbb_roster', JSON.stringify(roster));
   }
 
-  // === SAFE COURSES LOAD ===
+  // === SAFE COURSES ===
   try {
-    const savedCourses = localStorage.getItem('bbb_courses');
-    if (savedCourses && savedCourses !== 'undefined' && savedCourses !== 'null') {
-      courses = JSON.parse(savedCourses);
-      console.log('Courses loaded:', courses.length);
-    } else {
-      throw new Error('No courses');
-    }
+    const saved = localStorage.getItem('bbb_courses');
+    if (saved && saved !== 'undefined' && saved !== 'null') {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].pars) {
+        courses = parsed;
+        console.log('Courses loaded:', courses.length);
+      } else throw new Error();
+    } else throw new Error();
   } catch (e) {
-    console.warn('Courses failed, using defaults');
+    console.warn('Courses corrupted — using defaults');
     courses = [...PREDEFINED_COURSES];
     localStorage.setItem('bbb_courses', JSON.stringify(courses));
   }
 
-  // Reset state
+  // === CLEAN STATE ===
   players = [];
   currentCourse = null;
   currentHole = 1;
   inRound = false;
   finishedHoles.clear();
   localStorage.removeItem('bbb');
+  localStorage.removeItem('bbb_currentCourse');
 
   console.log('%cLOAD: Complete', 'color: green');
   if (callback) callback();

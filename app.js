@@ -3,6 +3,16 @@ console.log("BBB PWA v21.1 — FINAL FIX: DOM SAFE + SERVICE WORKER");
 
 
 
+// === TEMP: FORCE UNREGISTER OLD SW ===
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => {
+      console.log('Unregistering old SW:', reg);
+      reg.unregister();
+    });
+  });
+}
+
 // FORCE localStorage IN PWA
 if (!window.localStorage) {
   window.localStorage = {

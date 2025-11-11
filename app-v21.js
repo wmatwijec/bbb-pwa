@@ -1,7 +1,19 @@
 // app.js — BBB PWA v21.2 — FINAL: FULLY SAFE DOM + iOS PWA FIXED
 console.log("BBB PWA v21.2 — FINAL FIX: DOM SAFE + SERVICE WORKER");
 
+// === PREDEFINED DATA (MUST BE OUTSIDE DOMContentLoaded) ===
+const PREDEFINED_COURSES = [
+  { name: "Home Course", pars: [4,4,3,5,4,3,4,4,5, 4,3,4,5,4,3,4,4,5] },
+  { name: "Lakes",       pars: [4,3,4,5,4,3,4,4,5, 3,4,5,4,3,4,5,4,3] },
+  { name: "Hills",       pars: [5,4,3,4,3,4,5,4,3, 4,5,3,4,4,3,5,4,3] }
+];
 
+const PREDEFINED_ROSTER = [
+  { name: "Walt",   phone: "555-1111", email: "walt@example.com" },
+  { name: "Tim",    phone: "555-2222", email: "tim@example.com" },
+  { name: "Frank",  phone: "555-3333", email: "frank@example.com" },
+  { name: "Sally",  phone: "555-4444", email: "sally@example.com" }
+];
 
 // === TEMP: FORCE UNREGISTER OLD SW ===
 if ('serviceWorker' in navigator) {
@@ -33,19 +45,7 @@ function logScreen(name) {
   });
 }
 
-// === PREDEFINED DATA (MUST BE OUTSIDE DOMContentLoaded) ===
-const PREDEFINED_COURSES = [
-  { name: "Home Course", pars: [4,4,3,5,4,3,4,4,5, 4,3,4,5,4,3,4,4,5] },
-  { name: "Lakes",       pars: [4,3,4,5,4,3,4,4,5, 3,4,5,4,3,4,5,4,3] },
-  { name: "Hills",       pars: [5,4,3,4,3,4,5,4,3, 4,5,3,4,4,3,5,4,3] }
-];
 
-const PREDEFINED_ROSTER = [
-  { name: "Walt",   phone: "555-1111", email: "walt@example.com" },
-  { name: "Tim",    phone: "555-2222", email: "tim@example.com" },
-  { name: "Frank",  phone: "555-3333", email: "frank@example.com" },
-  { name: "Sally",  phone: "555-4444", email: "sally@example.com" }
-];
 
 // ==== State ====
 let roster = [];

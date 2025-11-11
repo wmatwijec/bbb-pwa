@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BBB Golf</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.png" />
+
+  <!-- <script>
+  (function () {
+    var script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/eruda';
+    script.onload = function () {
+      eruda.init();
+      // Add visible toggle button
+      const toggle = document.createElement('div');
+      toggle.innerHTML = '🛠';
+      toggle.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background: #000;
+        color: #0f0;
+        font-size: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        z-index: 99999;
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(0,255,0,0.5);
+        user-select: none;
+      `;
+      toggle.onclick = () => eruda.show();
+      document.body.appendChild(toggle);
+    };
+    document.head.appendChild(script);
+  })();
+</script> -->
+
+
+
+  <style>
+    :root {
+      --bg: #f4f4f4;
+      --card: #fff;
+      --text: #222;
+      --green: #0f0;
+      --btn-bg: #0f0;
+      --btn-text: #000;
+      --table-header: #555;
+      --table-bg: #eee;
+    }
+    [data-theme="dark"] {
+      --bg: #111;
+      --card: #222;
+      --text: #eee;
+      --green: #0f0;
+      --btn-bg: #0f0;
+      --btn-text: #000;
+      --table-header: #444;
+      --table-bg: #333;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 1rem;
+      line-height: 1.5;
+    }
+    h1 { color: var(--green); text-align: center; margin: 0.5rem 0; font-size: 1.4rem; }
+    button {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 0.25rem;
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    .hidden { display: none !important; }
+    .card {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .control-bar { display:flex; justify-content:center; gap:0.5rem; margin:1rem 0; flex-wrap:wrap; }
+    .center-block { max-width:800px; margin:0 auto; width:100%; }
+
+    /* MOBILE FULL WIDTH */
+    @media (max-width: 768px) {
+      .center-block {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 0.5rem !important;
+      }
+      .control-bar {
+        position:fixed; bottom:0; left:50%; transform:translateX(-50%);
+        width:100%; max-width:none;
+        background:var(--card); padding:0.5rem;
+        box-shadow:0 -2px 10px rgba(0,0,0,0.1);
+        z-index:900; border-top:1px solid rgba(0,0,0,0.1);
+        gap:0.25rem; display:flex; justify-content:center; flex-wrap:wrap;
+      }
+      body { padding-bottom: 100px !important; }
+    }
+
+    #holeDisplay {
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+
+    #scoreTable { width:100%; max-width:800px; margin:0.5rem auto; border-collapse:collapse; }
+    #scoreTable th, #scoreTable td { padding:0.75rem; text-align:center; border-bottom:1px solid #ddd; }
+    #scoreTable th { background:var(--table-header); color:#fff; font-weight:600; }
+    #scoreTable th:first-child, #scoreTable td:first-child { text-align:left; }
+    tbody tr:nth-child(even) { background:var(--table-bg); }
+
+    input[type="checkbox"] { width:24px; height:24px; transform:scale(1.5); margin:0 8px; cursor:pointer; }
+    @media (max-width:768px) { input[type="checkbox"] { width:28px; height:28px; transform:scale(1.6); } }
+
+    /* === TIGHT HOLE & ROUND SUMMARY === */
+    .holeSummary,
+    #roundSummary {
+      margin: 0.5rem auto !important;
+      padding: 0.6rem !important;
+      line-height: 1.4 !important;
+      text-align: center;
+      background: #fff !important;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #d4edda;
+      max-width: 800px;
+    }
+
+    /* HOLE SUMMARY: BOLD RED */
+    .holeSummary {
+      font-weight: bold !important;
+      color: #dc3545 !important;
+    }
+
+    /* ROUND SUMMARY: DARK GREEN */
+    #roundSummary {
+      color: #155724 !important;
+      font-weight: 600;
+    }
+    #roundSummary small { 
+      color: #0a6b0a !important; 
+      font-weight: normal;
+    }
+
+    /* REMOVE INNER MARGINS FROM ALL SUMMARY CONTENT */
+    .holeSummary > div,
+    .summary-awarded,
+    .summary-carry-in,
+    .summary-no-carry {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    .audit-good { color:#0f0; } .audit-bad { color:#f00; }
+    .audit-line { margin-top:0.5rem; font-size:0.85rem; line-height:1.5; }
+    .history-item { background:var(--card); padding:0.75rem; margin:0.5rem 0; border-radius:8px; cursor:pointer; }
+    .player-tag { display:inline-block; background:#0f0; color:#000; padding:0.25rem 0.5rem; border-radius:6px; margin:0.25rem; font-size:0.85rem; }
+
+    #playerSelect { display:flex; flex-direction:column; gap:0.5rem; max-width:600px; margin:0 auto; }
+    #playerSelect label { display:flex; align-items:center; gap:0.5rem; font-size:1.1rem; justify-content:flex-start; }
+  </style>
+</head>
+
+
+<script>
+  if ('serviceWorker' in navigator) {
+   window.addEventListener('load', () => {
+     navigator.serviceWorker.register('sw.js')
+       .then(reg => console.log('SW registered', reg))
+       .catch(err => console.log('SW failed', err));
+   });
+  }
+</script>
+
+
+<body>
+
+  <!-- COURSE SETUP -->
+  <div id="courseSetup" class="card center-block">
+    <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center;flex-wrap:wrap;">
+      <select id="courseSelect" style="flex:1;max-width:300px;"></select>
+      <button id="addCourse">+ Course</button>
+      <button id="nextToPlayers" disabled>Next</button>
+    </div>
+  </div>
+
+  <!-- PLAYER SETUP -->
+  <div id="playerSetup" class="card hidden center-block">
+    <button id="backToCourse">Back</button>
+    <div id="playerSelect"></div>
+    <div class="control-bar">
+      <button id="startGame" disabled>Start Round</button>
+    </div>
+  </div>
+
+  <!-- ROSTER -->
+  <div id="roster" class="card hidden center-block">
+    <button id="backToCourseFromRoster">Back</button>
+    <input id="rosterName" placeholder="Name" style="width:100%;margin:0.5rem 0;" />
+    <input id="rosterPhone" placeholder="Phone" style="width:100%;margin:0.5rem 0;" />
+    <input id="rosterEmail" placeholder="Email" style="width:100%;margin:0.5rem 0;" />
+    <button id="addToRoster">Add</button>
+    <div id="rosterList"></div>
+  </div>
+
+  <!-- COURSE FORM -->
+  <div id="courseForm" class="card hidden center-block">
+    <button id="cancelCourse">Cancel</button>
+    <input id="courseName" placeholder="Course Name" style="width:100%;margin:0.5rem 0;" />
+    <div id="pars"></div>
+    <button id="saveCourse">Save Course</button>
+  </div>
+
+  <!-- START HOLE MODAL -->
+  <div id="startHoleModal" class="card hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;width:90%;max-width:400px;">
+    <h3>Select Starting Hole</h3>
+    <label><input type="radio" name="startHole" value="1"> Hole 1</label><br>
+    <label><input type="radio" name="startHole" value="10"> Hole 10</label><br>
+    <div class="control-bar">
+      <button id="confirmStartHole">Start</button>
+      <button id="cancelStartHole">Cancel</button>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="game" class="card hidden center-block">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap;">
+      <h3 id="holeDisplay"></h3>
+      <div>
+        <button id="prevHole">Prev</button>
+        <button id="nextHole">Next</button>
+        <button id="editHole" class="hidden">Edit</button>
+        <button id="finishHole">Finish Hole</button>
+      </div>
+    </div>
+
+    <table id="scoreTable">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th id="firstOnHeader">FO</th>
+          <th>CL</th>
+          <th>P</th>
+          <th>H</th>
+          <th>Run</th>
+          <th>Tot</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="holeSummary"></div>
+    <div id="roundSummary" class="hidden"></div>
+
+    <div class="control-bar">
+      <button id="sendSMS">Send Update</button>
+      <button id="exportCSV">Export CSV</button>
+      <button id="completeRound">Complete Round</button>
+      <button id="exitRound">Exit</button>
+      <button id="saveRound">Save Round</button>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div id="summary" class="card hidden center-block">
+    <button id="backToSetup">Setup</button>
+    <h3>Final Leaderboard</h3>
+    <ol id="leaderboard"></ol>
+    <div class="control-bar">
+      <button id="restart">New Round</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div id="history" class="card hidden center-block">
+    <button id="backToSetup">Setup</button>
+    <h3>Round History</h3>
+    <div id="historyList"></div>
+  </div>
+
+  <!-- DEBUG -->
+  <div id="debugPanel" class="card hidden" style="position:fixed;bottom:10px;right:10px;width:300px;max-height:80vh;overflow:auto;z-index:1000;">
+    <button id="closeDebug" style="float:right;">Close</button>
+    <h4>Carry Debug</h4>
+    <div id="debugOutput"></div>
+  </div>
+
+  <div id="simResult"></div>
+
+  <!-- MOVED TO BOTTOM -->
+  <div class="control-bar">
+    <button id="darkModeToggle">Light</button>
+    <button id="cbToggle">CB</button>
+    <button id="manageRosterBtn">Roster</button>
+    <button id="historyBtn">History</button>
+  </div>
+  <h1>BBB Golf</h1>
+  
+  <!-- <button onclick="resetApp()" style="position:fixed;top:10px;left:10px;background:red;color:white;padding:10px;border:none;border-radius:6px;z-index:9999;">RESET APP</button>
+  <script>
+  function resetApp() {
+    localStorage.clear();
+    if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
+    location.reload();
+  }
+  </script> -->
+  
+  <script src="app-v21.js"></script>
+</body>
+</html>

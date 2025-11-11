@@ -65,52 +65,51 @@ let els = {};
 
 // ==== LOAD FUNCTION (OUTSIDE DOMContentLoaded) ====
 function load(callback) {
-  console.log('%cLOAD: Starting data restore', 'color: cyan; font-weight: bold');
+  console.log('%cLOAD: Starting', 'color: cyan');
 
-  // === ROSTER ===
-  const savedRoster = localStorage.getItem('bbb_roster');
-  if (!savedRoster || savedRoster === 'undefined' || savedRoster === 'null') {
-    console.log('No roster → using defaults');
-    roster = [...PREDEFINED_ROSTER];
-    localStorage.setItem('bbb_roster', JSON.stringify(roster));
-  } else {
-    try {
+  // === SAFE ROSTER LOAD ===
+  try {
+    const savedRoster = localStorage.getItem('bbb_roster');
+    if (savedRoster && savedRoster !== 'undefined' && savedRoster !== 'null') {
       roster = JSON.parse(savedRoster);
       console.log('Roster loaded:', roster.length);
-    } catch (e) {
-      console.error('Roster parse error:', e);
-      roster = [...PREDEFINED_ROSTER];
-      localStorage.setItem('bbb_roster', JSON.stringify(roster));
+    } else {
+      throw new Error('No roster');
     }
+  } catch (e) {
+    console.warn('Roster failed, using defaults');
+    roster = [...PREDEFINED_ROSTER];
+    localStorage.setItem('bbb_roster', JSON.stringify(roster));
   }
 
-  // === COURSES ===
-  const savedCourses = localStorage.getItem('bbb_courses');
-  if (!savedCourses || savedCourses === 'undefined' || savedCourses === 'null') {
-    console.log('No courses → using defaults');
-    courses = [...PREDEFINED_COURSES];
-    localStorage.setItem('bbb_courses', JSON.stringify(courses));
-  } else {
-    try {
+  // === SAFE COURSES LOAD ===
+  try {
+    const savedCourses = localStorage.getItem('bbb_courses');
+    if (savedCourses && savedCourses !== 'undefined' && savedCourses !== 'null') {
       courses = JSON.parse(savedCourses);
       console.log('Courses loaded:', courses.length);
-    } catch (e) {
-      console.error('Courses parse error:', e);
-      courses = [...PREDEFINED_COURSES];
-      localStorage.setItem('bbb_courses', JSON.stringify(courses));
+    } else {
+      throw new Error('No courses');
     }
+  } catch (e) {
+    console.warn('Courses failed, using defaults');
+    courses = [...PREDEFINED_COURSES];
+    localStorage.setItem('bbb_courses', JSON.stringify(courses));
   }
 
-  localStorage.removeItem('bbb');
-  inRound = false;
+  // Reset state
   players = [];
   currentCourse = null;
   currentHole = 1;
+  inRound = false;
   finishedHoles.clear();
+  localStorage.removeItem('bbb');
 
-  console.log('%cLOAD: Complete', 'color: green; font-weight: bold');
+  console.log('%cLOAD: Complete', 'color: green');
   if (callback) callback();
 }
+
+
 
 // ==== DOM READY — EVERYTHING INSIDE ====
 document.addEventListener('DOMContentLoaded', () => {

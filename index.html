@@ -8,7 +8,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.png" />
 
-  <script>
+  <!-- <script>
   (function () {
     var script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/eruda';
@@ -40,7 +40,7 @@
     };
     document.head.appendChild(script);
   })();
-</script>
+</script> -->
 
 
 
@@ -184,13 +184,13 @@
 
 
 <script>
-  //if ('serviceWorker' in navigator) {
-  //  window.addEventListener('load', () => {
-  //    navigator.serviceWorker.register('sw.js')
-  //      .then(reg => console.log('SW registered', reg))
-  //      .catch(err => console.log('SW failed', err));
-  //  });
-  //}
+  if ('serviceWorker' in navigator) {
+   window.addEventListener('load', () => {
+     navigator.serviceWorker.register('sw.js')
+       .then(reg => console.log('SW registered', reg))
+       .catch(err => console.log('SW failed', err));
+   });
+  }
 </script>
 
 
@@ -317,14 +317,14 @@
   </div>
   <h1>BBB Golf</h1>
   
-  <button onclick="resetApp()" style="position:fixed;top:10px;left:10px;background:red;color:white;padding:10px;border:none;border-radius:6px;z-index:9999;">RESET APP</button>
+  <!-- <button onclick="resetApp()" style="position:fixed;top:10px;left:10px;background:red;color:white;padding:10px;border:none;border-radius:6px;z-index:9999;">RESET APP</button>
   <script>
   function resetApp() {
     localStorage.clear();
     if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
     location.reload();
   }
-  </script>
+  </script> -->
   
   <script src="app.js"></script>
 </body>

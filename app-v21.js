@@ -182,7 +182,6 @@ document.addEventListener('DOMContentLoaded', () => {
     game: document.getElementById('game'),
     summary: document.getElementById('summary'),
     history: document.getElementById('history'),
-    startHoleModal: document.getElementById('startHoleModal'),
     confirmStartHole: document.getElementById('confirmStartHole'),
     cancelStartHole: document.getElementById('cancelStartHole'),
 
@@ -415,10 +414,7 @@ document.addEventListener('DOMContentLoaded', () => {
   els.game.classList.add('hidden');
   els.summary.classList.add('hidden');
   els.history.classList.add('hidden');
-  els.startHoleModal.classList.add('hidden');
-
-  
-}
+ }
 
   els.courseSelect.addEventListener('change', () => {
     const val = els.courseSelect.value;
@@ -483,12 +479,29 @@ function renderPlayerSelect() {
   els.startGame.disabled = players.length < 2;
 
   // === ATTACH START GAME LISTENER ===
-  els.startGame.onclick = () => {
-    if (players.length < 2) return alert('Select at least 2 players');
-    hideAll();
-    els.startHoleModal.classList.remove('hidden');
-    logScreen('START HOLE MODAL');
-  };
+ els.startGame.onclick = () => {
+  if (players.length < 2) return alert('Select at least 2 players');
+  
+  currentHole = 1;  // ← FORCE HOLE 1
+  finishedHoles.clear();
+
+  players.forEach(p => {
+    p.scores = Array(HOLES).fill(null).map(() => ({}));
+    p.gir = Array(HOLES).fill(false);
+    p._cachedTotal = 0;
+    p._cachedHoleTotals = {};
+  });
+
+  inRound = true;
+  hideAll();
+  els.game.classList.remove('hidden');
+  els.manageRosterBtn.disabled = true;
+  els.historyBtn.disabled = true;
+  updateHole();
+  setupGameButtons();
+  save();
+  logScreen('GAME STARTED');
+};
 }
 
 
@@ -504,44 +517,7 @@ function renderPlayerSelect() {
     logScreen('PLAYER SETUP');
   });
 
- 
-
-  els.confirmStartHole.addEventListener('click', () => {
-    const startHoleInput = document.querySelector('input[name="startHole"]:checked');
-    if (!startHoleInput) return alert('Select a starting hole');
-    const startHole = parseInt(startHoleInput.value);
-
-    currentHole = startHole;
-    finishedHoles.clear();
-
-    players.forEach(p => {
-      p.scores = Array(HOLES).fill(null).map(() => ({}));
-      p.gir = Array(HOLES).fill(false);
-      p._cachedTotal = 0;
-      p._cachedHoleTotals = {};
-    });
-
-    inRound = true;
-
-    els.startHoleModal.classList.add('hidden');
-    hideAll();
-    els.game.classList.remove('hidden');
-    els.manageRosterBtn.disabled = true;
-    els.historyBtn.disabled = true;
-    updateHole();
-    setupGameButtons();
-    save();
-    logScreen('GAME STARTED');
-  });
-
-  els.cancelStartHole.addEventListener('click', () => {
-    els.startHoleModal.classList.add('hidden');
-    hideAll();
-    els.playerSetup.classList.remove('hidden');
-    renderPlayerSelect();
-    logScreen('BACK TO PLAYERS');
-  });
-
+  
   els.backToCourse.addEventListener('click', () => {
     hideAll();
     els.courseSetup.classList.remove('hidden');

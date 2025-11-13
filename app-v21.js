@@ -443,10 +443,11 @@ function renderPlayerSelect() {
     return;
   }
 
-  // === SHOW BUTTON CONTAINER AND PARENT ===
+ // === SHOW BUTTON CONTAINER (FORCE ENTIRE CHAIN) ===
   const container = els.startGame.parentElement;
   container.style.display = 'block';
-  container.parentElement.style.display = 'block';  // THIS LINE FIXES IT
+  els.playerSetup.style.display = 'block';  // Force show parent
+  els.playerSetup.classList.remove('hidden');  // Remove hidden class
 
   // === ATTACH CHECKBOX LISTENERS ===
   els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {

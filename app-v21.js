@@ -244,9 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logScreen('APP START');
   });
 
-  // === REST OF YOUR APP (dark mode, roster, game, etc.) ===
-  // ... [all the code from your original file below this line] ...
-  // (I’ll paste it cleanly below)
+  
 
 
   // ==== DARK MODE, CB, DEBUG ====
@@ -341,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   els.backToCourseFromRoster.addEventListener('click', () => {
     hideAll();
-    els.courseSetup.classList.remove('hidden');
     logScreen('COURSE SETUP');
   });
 
@@ -520,7 +517,6 @@ function renderPlayerSelect() {
   
   els.backToCourse.addEventListener('click', () => {
     hideAll();
-    els.courseSetup.classList.remove('hidden');
     logScreen('BACK TO COURSE');
   });
 
@@ -550,14 +546,12 @@ function renderPlayerSelect() {
     courses.push({ name, pars });
     localStorage.setItem('bbb_courses', JSON.stringify(courses));
     hideAll();
-    els.courseSetup.classList.remove('hidden');
     renderCourseSelect();
     logScreen('COURSE SAVED');
   });
 
   els.cancelCourse.addEventListener('click', () => {
     hideAll();
-    els.courseSetup.classList.remove('hidden');
     logScreen('COURSE CANCELLED');
   });
 
@@ -1085,7 +1079,6 @@ function renderPlayerSelect() {
   els.backToSetup.forEach(btn => {
     btn.addEventListener('click', () => {
       hideAll();
-      els.courseSetup.classList.remove('hidden');
       logScreen('BACK TO SETUP');
     });
   });

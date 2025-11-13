@@ -8,384 +8,261 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.png" />
 
-  <!-- <script>
-  (function () {
-    var script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/eruda';
-    script.onload = function () {
-      eruda.init();
-      // Add visible toggle button
-      const toggle = document.createElement('div');
-      toggle.innerHTML = '🛠';
-      toggle.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        width: 50px;
-        height: 50px;
-        background: #000;
-        color: #0f0;
-        font-size: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        z-index: 99999;
-        cursor: pointer;
-        box-shadow: 0 0 10px rgba(0,255,0,0.5);
-        user-select: none;
-      `;
-      toggle.onclick = () => eruda.show();
-      document.body.appendChild(toggle);
-    };
-    document.head.appendChild(script);
-  })();
-</script> -->
-
-
-
-  <style>
-    :root {
-      --bg: #f4f4f4;
-      --card: #fff;
-      --text: #222;
-      --green: #0f0;
-      --btn-bg: #0f0;
-      --btn-text: #000;
-      --table-header: #555;
-      --table-bg: #eee;
-    }
-    [data-theme="dark"] {
-      --bg: #111;
-      --card: #222;
-      --text: #eee;
-      --green: #0f0;
-      --btn-bg: #0f0;
-      --btn-text: #000;
-      --table-header: #444;
-      --table-bg: #333;
-    }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding: 1rem;
-      line-height: 1.5;
-    }
-    h1 { color: var(--green); text-align: center; margin: 0.5rem 0; font-size: 1.4rem; }
-    button {
-      background: var(--btn-bg);
-      color: var(--btn-text);
-      border: none;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-      margin: 0.25rem;
-    }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
-    .hidden { display: none !important; }
-    .card {
-      background: var(--card);
-      padding: 1rem;
-      border-radius: 12px;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .control-bar { display:flex; justify-content:center; gap:0.5rem; margin:1rem 0; flex-wrap:wrap; }
-    .center-block { max-width:800px; margin:0 auto; width:100%; }
-
-    
-    #holeDisplay {
-      font-size: 1.1rem;
-      font-weight: 600;
-      text-align: center;
-      margin: 0.5rem 0;
-    }
-
-    #scoreTable { width:100%; max-width:800px; margin:0.5rem auto; border-collapse:collapse; }
-    #scoreTable th, #scoreTable td { padding:0.75rem; text-align:center; border-bottom:1px solid #ddd; }
-    #scoreTable th { background:var(--table-header); color:#fff; font-weight:600; }
-    #scoreTable th:first-child, #scoreTable td:first-child { text-align:left; }
-    tbody tr:nth-child(even) { background:var(--table-bg); }
-
-    input[type="checkbox"] { width:24px; height:24px; transform:scale(1.5); margin:0 8px; cursor:pointer; }
-    @media (max-width:768px) { input[type="checkbox"] { width:28px; height:28px; transform:scale(1.6); } }
-
-/* MOBILE FULL WIDTH */
-    @media (max-width: 768px) {
-      .center-block {
-        width: 100% !important;
-        max-width: none !important;
-        margin: 0 !important;
-        padding: 0 0.5rem !important;
-      }
-      .control-bar {
-        position:fixed; bottom:0; left:50%; transform:translateX(-50%);
-        width:100%; max-width:none;
-        background:var(--card); padding:0.5rem;
-        box-shadow:0 -2px 10px rgba(0,0,0,0.1);
-        z-index:900; border-top:1px solid rgba(0,0,0,0.1);
-        gap:0.25rem; display:flex; justify-content:center; flex-wrap:wrap;
-      }
-      body { padding-bottom: 100px !important; }
-    }
-
-
-/* MOBILE: Ensure course setup buttons are visible */
-@media (max-width: 768px) {
-  #courseSetup {
-    padding: 1rem !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
+ <style>
+  :root {
+    --bg: #f4f4f4;
+    --card: #fff;
+    --text: #222;
+    --green: #0f0;
+    --btn-bg: #0f0;
+    --btn-text: #000;
+    --table-header: #555;
+    --table-bg: #eee;
   }
-  
-  #courseSetup > div {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 0.5rem !important;
-    align-items: center !important;
-  }
-  
-  #courseSelect {
-    width: 100% !important;
-    max-width: none !important;
-    font-size: 1rem !important;
-  }
-  
-  #addCourse, #nextToPlayers {
-    width: 100% !important;
-    max-width: none !important;
-    font-size: 1rem !important;
-    padding: 0.75rem !important;
-  }
-  
-  #nextToPlayers:disabled {
-    opacity: 0.4 !important;
-    background: #ccc !important;
-    cursor: not-allowed !important;
-  }
-}
-
-
-/* MOBILE: Fix Start Round button clipping in player setup */
-@media (max-width: 768px) {
-  #playerSetup {
-    padding: 1rem !important;
-    padding-bottom: 160px !important;  /* Extra space for button + bottom nav */
-    min-height: 100vh !important;
-    overflow: visible !important;  /* Prevent clipping */
+  [data-theme="dark"] {
+    --bg: #111;
+    --card: #222;
+    --text: #eee;
+    --green: #0f0;
+    --btn-bg: #0f0;
+    --btn-text: #000;
+    --table-header: #444;
+    --table-bg: #333;
   }
 
-  #playerSetup .card {
-    margin-bottom: 0 !important;  /* No margin — full height */
-    padding-bottom: 2rem !important;  /* Room for button */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 1rem;
+    line-height: 1.5;
   }
 
-  #playerSetup > div[style*="margin-top: 1rem"] {
-    margin-top: 1.5rem !important;
-    padding: 0.5rem !important;
-    background: var(--card) !important;  /* Visual separation */
-    border-radius: 8px !important;
-    display: block !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
+  h1 { 
+    color: var(--green); 
+    text-align: center; 
+    margin: 0.5rem 0; 
+    font-size: 1.4rem; 
+  }
+  h1 span { 
+    font-size: 0.7rem; 
+    color: #666; 
+    font-weight: normal; 
   }
 
-  #startGame {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 1.2rem !important;
-    font-size: 1.2rem !important;
-    min-height: 60px !important;  /* Touch-friendly */
-    background: var(--btn-bg) !important;
-    color: var(--btn-text) !important;
-    border: none !important;
-    border-radius: 12px !important;
-    font-weight: bold !important;
-    cursor: pointer !important;
-    box-sizing: border-box !important;
+  button {
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    margin: 0.25rem;
+  }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
   }
 
-  #startGame:disabled {
-    opacity: 0.6 !important;
-    background: #ccc !important;
-    color: #999 !important;
-    cursor: not-allowed !important;
-  }
-}
-
-
-/* MOBILE: Ensure Start Round button is visible in player setup */
-@media (max-width: 768px) {
-  #playerSetup {
-    padding-bottom: 120px !important;  /* Extra space for bottom nav */
+  .card {
+    background: var(--card);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
 
-  #playerSetup .control-bar {
-    position: static !important;  /* Don't fix to bottom — let it flow */
-    margin-top: 1rem !important;
-    padding: 0.75rem !important;
-    background: var(--card) !important;
-    border-radius: 8px !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
-    display: flex !important;
-    justify-content: center !important;
+  .control-bar { 
+    display: flex; 
+    justify-content: center; 
+    gap: 0.5rem; 
+    margin: 1rem 0; 
+    flex-wrap: wrap; 
   }
 
-  #startGame {
-    flex: 1 !important;
-    max-width: none !important;
-    font-size: 1.1rem !important;
-    padding: 1rem !important;
-    background: var(--btn-bg) !important;
-    color: var(--btn-text) !important;
-    border-radius: 8px !important;
-    font-weight: bold !important;
+  .center-block { 
+    max-width: 800px; 
+    margin: 0 auto; 
+    width: 100%; 
   }
 
-  #startGame:disabled {
-    opacity: 0.5 !important;
-    background: #ddd !important;
-    color: #666 !important;
-  }
-}
-
-/* MOBILE: Start Round button in player setup */
-@media (max-width: 768px) {
-  #playerSetup button#startGame {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 1rem !important;
-    font-size: 1.1rem !important;
-    margin-top: 1rem !important;
-    background: var(--btn-bg) !important;
-    color: var(--btn-text) !important;
-    border: none !important;
-    border-radius: 8px !important;
-    font-weight: bold !important;
+  #holeDisplay {
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-align: center;
+    margin: 0.5rem 0;
   }
 
-  #playerSetup button#startGame:disabled {
-    opacity: 0.5 !important;
-    background: #ddd !important;
-    color: #666 !important;
+  #scoreTable { 
+    width: 100%; 
+    max-width: 800px; 
+    margin: 0.5rem auto; 
+    border-collapse: collapse; 
+  }
+  #scoreTable th, #scoreTable td { 
+    padding: 0.75rem; 
+    text-align: center; 
+    border-bottom: 1px solid #ddd; 
+  }
+  #scoreTable th { 
+    background: var(--table-header); 
+    color: #fff; 
+    font-weight: 600; 
+  }
+  #scoreTable th:first-child, #scoreTable td:first-child { text-align: left; }
+  tbody tr:nth-child(even) { background: var(--table-bg); }
+
+  input[type="checkbox"] { 
+    width: 24px; 
+    height: 24px; 
+    transform: scale(1.5); 
+    margin: 0 8px; 
+    cursor: pointer; 
   }
 
-  #playerSetup {
-    padding-bottom: 20px !important;  /* Less padding — button is now inline */
-  }
-}
-
-/* MOBILE: Fix startHoleModal radio masking by buttons */
-@media (max-width: 768px) {
-  #startHoleModal {
-    width: 95% !important;
-    max-width: 350px !important;
-    padding: 1.5rem !important;
-    max-height: 80vh !important;
-    overflow-y: auto !important;
-  }
-
-  #startHoleModal h3 {
-    margin-bottom: 1rem !important;
-    font-size: 1.2rem !important;
-  }
-
-  #startHoleModal label {
-    display: block !important;
-    margin-bottom: 1rem !important;
-    padding: 0.5rem !important;
-    border-radius: 6px !important;
-    background: var(--card) !important;
-    cursor: pointer !important;
-  }
-
-  #startHoleModal input[type="radio"] {
-    margin-right: 0.5rem !important;
-    transform: scale(1.2) !important;
-  }
-
-  #startHoleModal .control-bar {
-    margin-top: 1.5rem !important;
-    gap: 1rem !important;
-    justify-content: center !important;
-    position: relative !important;
-    z-index: 101 !important;  /* Ensure buttons don't mask radios */
-  }
-
-  #startHoleModal button {
-    flex: 1 !important;
-    max-width: 140px !important;
-    padding: 0.75rem !important;
-    font-size: 1rem !important;
-  }
-}
-
-/* Desktop: Keep button prominent */
-#playerSetup button#startGame {
-  width: auto !important;
-  padding: 0.75rem 2rem !important;
-  font-size: 1rem !important;
-  margin-top: 1rem !important;
-}
-
-
-
-
-
-
-    /* === TIGHT HOLE & ROUND SUMMARY === */
-    .holeSummary,
-    #roundSummary {
-      margin: 0.5rem auto !important;
-      padding: 0.6rem !important;
-      line-height: 1.4 !important;
-      text-align: center;
-      background: #fff !important;
-      border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      border: 1px solid #d4edda;
-      max-width: 800px;
-    }
-
-    /* HOLE SUMMARY: BOLD RED */
-    .holeSummary {
-      font-weight: bold !important;
-      color: #dc3545 !important;
-    }
-
-    /* ROUND SUMMARY: DARK GREEN */
-    #roundSummary {
-      color: #155724 !important;
-      font-weight: 600;
-    }
-    #roundSummary small { 
-      color: #0a6b0a !important; 
-      font-weight: normal;
-    }
-
-    /* REMOVE INNER MARGINS FROM ALL SUMMARY CONTENT */
-    .holeSummary > div,
-    .summary-awarded,
-    .summary-carry-in,
-    .summary-no-carry {
+  /* === MOBILE STYLES === */
+  @media (max-width: 768px) {
+    .center-block {
+      width: 100% !important;
+      max-width: none !important;
       margin: 0 !important;
-      padding: 0 !important;
+      padding: 0 0.5rem !important;
     }
 
-    .audit-good { color:#0f0; } .audit-bad { color:#f00; }
-    .audit-line { margin-top:0.5rem; font-size:0.85rem; line-height:1.5; }
-    .history-item { background:var(--card); padding:0.75rem; margin:0.5rem 0; border-radius:8px; cursor:pointer; }
-    .player-tag { display:inline-block; background:#0f0; color:#000; padding:0.25rem 0.5rem; border-radius:6px; margin:0.25rem; font-size:0.85rem; }
+    .control-bar {
+      position: fixed; 
+      bottom: 0; 
+      left: 50%; 
+      transform: translateX(-50%);
+      width: 100%; 
+      max-width: none;
+      background: var(--card); 
+      padding: 0.5rem;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+      z-index: 900; 
+      border-top: 1px solid rgba(0,0,0,0.1);
+      gap: 0.25rem; 
+    }
 
-    #playerSelect { display:flex; flex-direction:column; gap:0.5rem; max-width:600px; margin:0 auto; }
-    #playerSelect label { display:flex; align-items:center; gap:0.5rem; font-size:1.1rem; justify-content:flex-start; }
-  </style>
+    body { padding-bottom: 100px !important; }
+
+    input[type="checkbox"] { 
+      width: 28px; 
+      height: 28px; 
+      transform: scale(1.6); 
+    }
+
+    /* COURSE SETUP */
+    #courseSetup {
+      padding: 1rem !important;
+      display: flex !important;
+      flex-direction: column !important;
+      align-items: stretch !important;
+    }
+    #courseSetup > div {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 0.5rem !important;
+      align-items: center !important;
+    }
+    #courseSelect, #addCourse, #nextToPlayers {
+      width: 100% !important;
+      max-width: none !important;
+      font-size: 1rem !important;
+      padding: 0.75rem !important;
+    }
+    #nextToPlayers:disabled {
+      opacity: 0.4 !important;
+      background: #ccc !important;
+      cursor: not-allowed !important;
+    }
+
+    /* PLAYER SETUP & START ROUND */
+    #playerSetup {
+      padding: 1rem 1rem 160px 1rem !important;
+      min-height: 100vh !important;
+      overflow: visible !important;
+    }
+
+    #playerSetup > div[style*="margin-top: 1rem"] {
+      margin-top: 1.5rem !important;
+      padding: 0.5rem !important;
+      background: var(--card) !important;
+      border-radius: 8px !important;
+      display: block !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    #startGame {
+      width: 100% !important;
+      max-width: none !important;
+      padding: 1.2rem !important;
+      font-size: 1.2rem !important;
+      min-height: 60px !important;
+      background: var(--btn-bg) !important;
+      color: var(--btn-text) !important;
+      border: none !important;
+      border-radius: 12px !important;
+      font-weight: bold !important;
+      cursor: pointer !important;
+      box-sizing: border-box !important;
+    }
+    #startGame:disabled {
+      opacity: 0.6 !important;
+      background: #ccc !important;
+      color: #999 !important;
+      cursor: not-allowed !important;
+    }
+  }
+
+  /* === TIGHT SUMMARY === */
+  .holeSummary, #roundSummary {
+    margin: 0.5rem auto !important;
+    padding: 0.6rem !important;
+    line-height: 1.4 !important;
+    text-align: center;
+    background: #fff !important;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    border: 1px solid #d4edda;
+    max-width: 800px;
+  }
+  .holeSummary { font-weight: bold !important; color: #dc3545 !important; }
+  #roundSummary { color: #155724 !important; font-weight: 600; }
+  #roundSummary small { color: #0a6b0a !important; font-weight: normal; }
+  .holeSummary > div, .summary-awarded, .summary-carry-in, .summary-no-carry {
+    margin: 0 !important; padding: 0 !important;
+  }
+
+  .audit-good { color: #0f0; } 
+  .audit-bad { color: #f00; }
+  .audit-line { margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.5; }
+  .history-item { background: var(--card); padding: 0.75rem; margin: 0.5rem 0; border-radius: 8px; cursor: pointer; }
+  .player-tag { display: inline-block; background: #0f0; color: #000; padding: 0.25rem 0.5rem; border-radius: 6px; margin: 0.25rem; font-size: 0.85rem; }
+
+  #playerSelect { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 0.5rem; 
+    max-width: 600px; 
+    margin: 0 auto; 
+  }
+  #playerSelect label { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.5rem; 
+    font-size: 1.1rem; 
+    justify-content: flex-start; 
+  }
+</style>
+
 </head>
 
 
@@ -527,7 +404,9 @@
     <button id="manageRosterBtn">Roster</button>
     <button id="historyBtn">History</button>
   </div>
-  <h1>BBB Golf</h1>
+  <h1 style="text-align:center; margin:0.5rem 0;">
+  BBB Golf <span id="versionTimestamp" style="font-size:0.7rem; color:#666; font-weight:normal;"></span>
+  </h1>
   
   <div id="appVersion" style="text-align:center; font-size:0.8rem; color:#666; margin:0.5rem 0;">
   v21.2 — <span id="versionTimestamp"></span>

@@ -409,11 +409,7 @@ document.addEventListener('DOMContentLoaded', () => {
   els.history.classList.add('hidden');
   els.startHoleModal.classList.add('hidden');
 
-  // === HIDE START ROUND BUTTON ===
-  const startBtn = document.getElementById('startGame');
-  if (startBtn) {
-    startBtn.parentElement.style.display = 'none';
-  }
+  
 }
 
   els.courseSelect.addEventListener('change', () => {
@@ -447,9 +443,10 @@ function renderPlayerSelect() {
     return;
   }
 
-  // === SHOW BUTTON CONTAINER ===
+  // === SHOW BUTTON CONTAINER AND PARENT ===
   const container = els.startGame.parentElement;
   container.style.display = 'block';
+  container.parentElement.style.display = 'block';  // THIS LINE FIXES IT
 
   // === ATTACH CHECKBOX LISTENERS ===
   els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
@@ -476,11 +473,11 @@ function renderPlayerSelect() {
   // === INITIAL STATE ===
   els.startGame.disabled = players.length < 2;
 
-  // === ATTACH START GAME LISTENER (CORRECTED) ===
+  // === ATTACH START GAME LISTENER ===
   els.startGame.onclick = () => {
     if (players.length < 2) return alert('Select at least 2 players');
     hideAll();
-    els.startHoleModal.classList.remove('hidden');  // ONLY THIS
+    els.startHoleModal.classList.remove('hidden');
     logScreen('START HOLE MODAL');
   };
 }

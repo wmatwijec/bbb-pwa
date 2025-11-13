@@ -232,7 +232,12 @@ document.addEventListener('DOMContentLoaded', () => {
     debugPanel: document.getElementById('debugPanel'),
     debugOutput: document.getElementById('debugOutput'),
     closeDebug: document.getElementById('closeDebug'),
-    simResult: document.getElementById('simResult')
+    simResult: document.getElementById('simResult'),
+
+    courseInfoBar: document.getElementById('courseInfoBar'),
+    infoCourseName: document.getElementById('infoCourseName'),
+    infoCurrentHole: document.getElementById('infoCurrentHole'),
+    infoPar: document.getElementById('infoPar'),
   };
 
   // === INIT: LOAD DATA → RENDER UI ===
@@ -496,6 +501,7 @@ function renderPlayerSelect() {
   els.historyBtn.disabled = true;
   updateHole();
   setupGameButtons();
+  updateCourseInfoBar()
   save();
   logScreen('GAME STARTED');
 };
@@ -673,10 +679,28 @@ function renderPlayerSelect() {
     renderTable(carryIn, isFinished);
     renderHoleSummary(carryIn, isFinished);
     renderRoundSummary();
+    updateCourseInfoBar();
 
     save();
     if (debugMode) renderDebugCarryTable();
   }
+
+  function updateCourseInfoBar() {
+  if (!inRound || !currentCourse) {
+    els.courseInfoBar.style.display = 'none';
+    return;
+  }
+
+  els.infoCourseName.textContent = currentCourse.name;
+  els.infoCurrentHole.textContent = currentHole;
+  const par = currentCourse.pars[currentHole - 1];
+  els.infoPar.textContent = `Par ${par}`;
+
+  els.courseInfoBar.style.display = 'block';
+}
+  
+
+
 
   function renderTable(carryIn, isFinished) {
     if (!els.scoreTable || !els.scoreTable.tBodies || !els.scoreTable.tBodies[0]) return;
@@ -1048,14 +1072,24 @@ function renderPlayerSelect() {
     finishedHoles.clear();
   }
 
-  els.prevHole.addEventListener('click', () => { 
-    if (currentHole > 1) { currentHole--; precomputeAllTotals(); updateHole(); } 
-  });
+  els.prevHole.addEventListener('click', () => {
+  if (!inRound) return;
+  currentHole = currentHole === 1 ? HOLES : currentHole - 1;
+  updateHole();
+  updateCourseInfoBar();  // ADD THIS
+  logScreen(`PREV → HOLE ${currentHole}`);
+});
 
-  els.nextHole.addEventListener('click', () => { 
-    if (currentHole < HOLES) { currentHole++; precomputeAllTotals(); updateHole(); } 
-    else if (currentHole === HOLES && finishedHoles.has(HOLES)) { currentHole = 1; updateHole(); }
-  });
+
+
+  els.nextHole.addEventListener('click', () => {
+  if (!inRound) return;
+  currentHole = (currentHole % HOLES) + 1;
+  updateHole();
+  updateCourseInfoBar();  // ADD THIS
+  logScreen(`NEXT → HOLE ${currentHole}`);
+});
+
 
   els.finishHole.addEventListener('click', finishCurrentHole);
 

@@ -434,7 +434,7 @@ function renderPlayerSelect() {
     els.playerSelect.appendChild(div);
   });
 
-  // === GET startGame BUTTON (NO CLONE — keeps layout) ===
+  // === GET startGame BUTTON ===
   els.startGame = document.getElementById('startGame');
   if (!els.startGame) {
     console.error('%cFATAL: #startGame NOT FOUND!', 'color: red');
@@ -442,20 +442,37 @@ function renderPlayerSelect() {
   }
   console.log('startGame button found:', els.startGame);
 
-  // === ATTACH/RE-ATTACH CHECKBOX LISTENERS ===
+  // === ATTACH CHECKBOX LISTENERS ===
   els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-    // Remove old listener if exists (prevent duplicates)
-    chk.removeEventListener('change', handleCheckboxChange);
-    chk.addEventListener('change', handleCheckboxChange);
+    chk.addEventListener('change', () => {
+      const idx = parseInt(chk.dataset.index);
+      const player = roster[idx];
+      console.log('Checkbox:', player.name, chk.checked ? 'checked' : 'unchecked');
+
+      if (chk.checked) {
+        if (players.length >= MAX_PLAYERS) {
+          chk.checked = false;
+          alert(`Max ${MAX_PLAYERS} players`);
+          return;
+        }
+        players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
+      } else {
+        players = players.filter(p => p.name !== player.name);
+      }
+
+      els.startGame.disabled = players.length < 2;
+      console.log('Button disabled:', els.startGame.disabled, '| Players:', players.length);
+      save();
+    });
   });
 
-  // === UPDATE BUTTON STATE ===
-  updateStartGameButton();
+  // === INITIAL STATE ===
+  els.startGame.disabled = players.length < 2;
+  console.log('Initial button state:', els.startGame.disabled ? 'disabled' : 'enabled');
 
-  // === ATTACH START GAME LISTENER (safe re-attach) ===
-  els.startGame.removeEventListener('click', handleStartGame);
-  els.startGame.addEventListener('click', handleStartGame);
+  
 }
+
 
 // === HELPER FUNCTIONS (add these outside renderPlayerSelect) ===
 function handleCheckboxChange() {

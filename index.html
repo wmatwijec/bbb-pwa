@@ -206,6 +206,45 @@
   }
 }
 
+/* MOBILE: Start Round button in player setup */
+@media (max-width: 768px) {
+  #playerSetup button#startGame {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 1rem !important;
+    font-size: 1.1rem !important;
+    margin-top: 1rem !important;
+    background: var(--btn-bg) !important;
+    color: var(--btn-text) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
+  }
+
+  #playerSetup button#startGame:disabled {
+    opacity: 0.5 !important;
+    background: #ddd !important;
+    color: #666 !important;
+  }
+
+  #playerSetup {
+    padding-bottom: 20px !important;  /* Less padding — button is now inline */
+  }
+}
+
+/* Desktop: Keep button prominent */
+#playerSetup button#startGame {
+  width: auto !important;
+  padding: 0.75rem 2rem !important;
+  font-size: 1rem !important;
+  margin-top: 1rem !important;
+}
+
+
+
+
+
+
     /* === TIGHT HOLE & ROUND SUMMARY === */
     .holeSummary,
     #roundSummary {
@@ -279,13 +318,15 @@
   </div>
 
   <!-- PLAYER SETUP -->
-  <div id="playerSetup" class="card hidden center-block">
-    <button id="backToCourse">Back</button>
-    <div id="playerSelect"></div>
-    <div class="control-bar">
-      <button id="startGame" disabled>Start Round</button>
-    </div>
+ <div id="playerSetup" class="card hidden center-block">
+  <button id="backToCourse">Back</button>
+  <div id="playerSelect"></div>
+  
+  <!-- MOVED: Start Round button here, not in bottom nav -->
+  <div style="margin-top: 1rem; text-align: center;">
+    <button id="startGame" disabled style="width: 100%; padding: 1rem; font-size: 1.1rem;">Start Round</button>
   </div>
+ </div>
 
   <!-- ROSTER -->
   <div id="roster" class="card hidden center-block">

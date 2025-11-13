@@ -171,6 +171,55 @@
   }
 }
 
+
+/* MOBILE: Fix Start Round button clipping in player setup */
+@media (max-width: 768px) {
+  #playerSetup {
+    padding: 1rem !important;
+    padding-bottom: 160px !important;  /* Extra space for button + bottom nav */
+    min-height: 100vh !important;
+    overflow: visible !important;  /* Prevent clipping */
+  }
+
+  #playerSetup .card {
+    margin-bottom: 0 !important;  /* No margin — full height */
+    padding-bottom: 2rem !important;  /* Room for button */
+  }
+
+  #playerSetup > div[style*="margin-top: 1rem"] {
+    margin-top: 1.5rem !important;
+    padding: 0.5rem !important;
+    background: var(--card) !important;  /* Visual separation */
+    border-radius: 8px !important;
+    display: block !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  #startGame {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 1.2rem !important;
+    font-size: 1.2rem !important;
+    min-height: 60px !important;  /* Touch-friendly */
+    background: var(--btn-bg) !important;
+    color: var(--btn-text) !important;
+    border: none !important;
+    border-radius: 12px !important;
+    font-weight: bold !important;
+    cursor: pointer !important;
+    box-sizing: border-box !important;
+  }
+
+  #startGame:disabled {
+    opacity: 0.6 !important;
+    background: #ccc !important;
+    color: #999 !important;
+    cursor: not-allowed !important;
+  }
+}
+
+
 /* MOBILE: Ensure Start Round button is visible in player setup */
 @media (max-width: 768px) {
   #playerSetup {

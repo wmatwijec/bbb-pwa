@@ -434,49 +434,61 @@ function renderPlayerSelect() {
     els.playerSelect.appendChild(div);
   });
 
-  // === RE-QUERY & CLONE startGame BUTTON ===
-  const startGameBtn = document.getElementById('startGame');
-  if (!startGameBtn) {
+  // === GET startGame BUTTON (NO CLONE — keeps layout) ===
+  els.startGame = document.getElementById('startGame');
+  if (!els.startGame) {
     console.error('%cFATAL: #startGame NOT FOUND!', 'color: red');
     return;
   }
+  console.log('startGame button found:', els.startGame);
 
-  const freshBtn = startGameBtn.cloneNode(true);
-  startGameBtn.replaceWith(freshBtn);
-  els.startGame = freshBtn;
-
-  // === RE-ATTACH CHECKBOXES ===
+  // === ATTACH/RE-ATTACH CHECKBOX LISTENERS ===
   els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-    chk.addEventListener('change', () => {
-      const idx = parseInt(chk.dataset.index);
-      const player = roster[idx];
-
-      if (chk.checked) {
-        if (players.length >= MAX_PLAYERS) {
-          chk.checked = false;
-          alert(`Max ${MAX_PLAYERS} players`);
-          return;
-        }
-        players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
-      } else {
-        players = players.filter(p => p.name !== player.name);
-      }
-
-      els.startGame.disabled = players.length < 2;
-      save();
-    });
+    // Remove old listener if exists (prevent duplicates)
+    chk.removeEventListener('change', handleCheckboxChange);
+    chk.addEventListener('change', handleCheckboxChange);
   });
 
+  // === UPDATE BUTTON STATE ===
+  updateStartGameButton();
+
+  // === ATTACH START GAME LISTENER (safe re-attach) ===
+  els.startGame.removeEventListener('click', handleStartGame);
+  els.startGame.addEventListener('click', handleStartGame);
+}
+
+// === HELPER FUNCTIONS (add these outside renderPlayerSelect) ===
+function handleCheckboxChange() {
+  const chk = event.target;
+  const idx = parseInt(chk.dataset.index);
+  const player = roster[idx];
+
+  if (chk.checked) {
+    if (players.length >= MAX_PLAYERS) {
+      chk.checked = false;
+      alert(`Max ${MAX_PLAYERS} players`);
+      return;
+    }
+    players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
+  } else {
+    players = players.filter(p => p.name !== player.name);
+  }
+
+  updateStartGameButton();
+  save();
+}
+
+function updateStartGameButton() {
   els.startGame.disabled = players.length < 2;
+  console.log('Button state:', els.startGame.disabled ? 'disabled' : 'enabled', '| Players:', players.length);
+}
 
-  // === ATTACH START GAME LISTENER HERE ===
-  els.startGame.addEventListener('click', () => {
-    if (players.length < 2) return alert('Select at least 2 players');
-    hideAll();
-    els.playerSetup.classList.remove('hidden');
-    els.startHoleModal.classList.remove('hidden');
-    logScreen('START HOLE MODAL');
-  });
+function handleStartGame() {
+  if (players.length < 2) return alert('Select at least 2 players');
+  hideAll();
+  els.playerSetup.classList.remove('hidden');
+  els.startHoleModal.classList.remove('hidden');
+  logScreen('START HOLE MODAL');
 }
 
 

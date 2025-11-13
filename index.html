@@ -134,7 +134,7 @@
       body { padding-bottom: 100px !important; }
     }
 
-    
+
 /* MOBILE: Ensure course setup buttons are visible */
 @media (max-width: 768px) {
   #courseSetup {
@@ -171,7 +171,40 @@
   }
 }
 
+/* MOBILE: Ensure Start Round button is visible in player setup */
+@media (max-width: 768px) {
+  #playerSetup {
+    padding-bottom: 120px !important;  /* Extra space for bottom nav */
+  }
 
+  #playerSetup .control-bar {
+    position: static !important;  /* Don't fix to bottom — let it flow */
+    margin-top: 1rem !important;
+    padding: 0.75rem !important;
+    background: var(--card) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1) !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  #startGame {
+    flex: 1 !important;
+    max-width: none !important;
+    font-size: 1.1rem !important;
+    padding: 1rem !important;
+    background: var(--btn-bg) !important;
+    color: var(--btn-text) !important;
+    border-radius: 8px !important;
+    font-weight: bold !important;
+  }
+
+  #startGame:disabled {
+    opacity: 0.5 !important;
+    background: #ddd !important;
+    color: #666 !important;
+  }
+}
 
     /* === TIGHT HOLE & ROUND SUMMARY === */
     .holeSummary,

@@ -399,16 +399,22 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==== FLOW ====
-  function hideAll() {
-    els.courseSetup.classList.add('hidden');
-    els.playerSetup.classList.add('hidden');
-    els.roster.classList.add('hidden');
-    els.courseForm.classList.add('hidden');
-    els.game.classList.add('hidden');
-    els.summary.classList.add('hidden');
-    els.history.classList.add('hidden');
-    els.startHoleModal.classList.add('hidden');
+ function hideAll() {
+  els.courseSetup.classList.add('hidden');
+  els.playerSetup.classList.add('hidden');
+  els.roster.classList.add('hidden');
+  els.courseForm.classList.add('hidden');
+  els.game.classList.add('hidden');
+  els.summary.classList.add('hidden');
+  els.history.classList.add('hidden');
+  els.startHoleModal.classList.add('hidden');
+
+  // === HIDE START ROUND BUTTON ===
+  const startBtn = document.getElementById('startGame');
+  if (startBtn) {
+    startBtn.parentElement.style.display = 'none';
   }
+}
 
   els.courseSelect.addEventListener('change', () => {
     const val = els.courseSelect.value;
@@ -440,14 +446,16 @@ function renderPlayerSelect() {
     console.error('%cFATAL: #startGame NOT FOUND!', 'color: red');
     return;
   }
-  console.log('startGame button found:', els.startGame);
+
+  // === SHOW BUTTON (it's already in DOM) ===
+  const container = els.startGame.parentElement; // the <div style="margin-top: 1rem; ...">
+  container.style.display = 'block'; // ensure visible
 
   // === ATTACH CHECKBOX LISTENERS ===
   els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
     chk.addEventListener('change', () => {
       const idx = parseInt(chk.dataset.index);
       const player = roster[idx];
-      console.log('Checkbox:', player.name, chk.checked ? 'checked' : 'unchecked');
 
       if (chk.checked) {
         if (players.length >= MAX_PLAYERS) {
@@ -461,16 +469,21 @@ function renderPlayerSelect() {
       }
 
       els.startGame.disabled = players.length < 2;
-      console.log('Button disabled:', els.startGame.disabled, '| Players:', players.length);
       save();
     });
   });
 
   // === INITIAL STATE ===
   els.startGame.disabled = players.length < 2;
-  console.log('Initial button state:', els.startGame.disabled ? 'disabled' : 'enabled');
 
-  
+  // === ATTACH START GAME LISTENER (ONLY ONCE) ===
+  els.startGame.onclick = () => {
+    if (players.length < 2) return alert('Select at least 2 players');
+    hideAll();
+    els.playerSetup.classList.remove('hidden');
+    els.startHoleModal.classList.remove('hidden');
+    logScreen('START HOLE MODAL');
+  };
 }
 
 

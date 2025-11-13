@@ -281,6 +281,51 @@
   }
 }
 
+/* MOBILE: Fix startHoleModal radio masking by buttons */
+@media (max-width: 768px) {
+  #startHoleModal {
+    width: 95% !important;
+    max-width: 350px !important;
+    padding: 1.5rem !important;
+    max-height: 80vh !important;
+    overflow-y: auto !important;
+  }
+
+  #startHoleModal h3 {
+    margin-bottom: 1rem !important;
+    font-size: 1.2rem !important;
+  }
+
+  #startHoleModal label {
+    display: block !important;
+    margin-bottom: 1rem !important;
+    padding: 0.5rem !important;
+    border-radius: 6px !important;
+    background: var(--card) !important;
+    cursor: pointer !important;
+  }
+
+  #startHoleModal input[type="radio"] {
+    margin-right: 0.5rem !important;
+    transform: scale(1.2) !important;
+  }
+
+  #startHoleModal .control-bar {
+    margin-top: 1.5rem !important;
+    gap: 1rem !important;
+    justify-content: center !important;
+    position: relative !important;
+    z-index: 101 !important;  /* Ensure buttons don't mask radios */
+  }
+
+  #startHoleModal button {
+    flex: 1 !important;
+    max-width: 140px !important;
+    padding: 0.75rem !important;
+    font-size: 1rem !important;
+  }
+}
+
 /* Desktop: Keep button prominent */
 #playerSetup button#startGame {
   width: auto !important;
@@ -396,15 +441,19 @@
   </div>
 
   <!-- START HOLE MODAL -->
-  <div id="startHoleModal" class="card hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;width:90%;max-width:400px;">
-    <h3>Select Starting Hole</h3>
-    <label><input type="radio" name="startHole" value="1"> Hole 1</label><br>
-    <label><input type="radio" name="startHole" value="10"> Hole 10</label><br>
-    <div class="control-bar">
-      <button id="confirmStartHole">Start</button>
-      <button id="cancelStartHole">Cancel</button>
-    </div>
+<div id="startHoleModal" class="card hidden" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:100;width:90%;max-width:400px;">
+  <h3>Select Starting Hole</h3>
+  <label style="display: block; margin-bottom: 1rem; padding: 0.5rem; border-radius: 6px; background: var(--card); cursor: pointer;">
+    <input type="radio" name="startHole" value="1"> Hole 1
+  </label>
+  <label style="display: block; margin-bottom: 1rem; padding: 0.5rem; border-radius: 6px; background: var(--card); cursor: pointer;">
+    <input type="radio" name="startHole" value="10"> Hole 10
+  </label>
+  <div class="control-bar">
+    <button id="confirmStartHole">Start</button>
+    <button id="cancelStartHole">Cancel</button>
   </div>
+</div>
 
   <!-- GAME SCREEN -->
   <div id="game" class="card hidden center-block">

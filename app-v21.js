@@ -1,5 +1,13 @@
-// app.js — BBB PWA v21.2 — FINAL: FULLY SAFE DOM + iOS PWA FIXED
 console.log("BBB PWA v21.2 — FINAL FIX: DOM SAFE + SERVICE WORKER");
+
+// === VERSION STAMP ===
+const VERSION = 'v21.2';
+const BUILD_TIME = '2025-11-13 15:30';  // MATCH THE ?v= TIME
+if (document.getElementById('versionTimestamp')) {
+  document.getElementById('versionTimestamp').textContent = `${VERSION} @ ${BUILD_TIME}`;
+}
+console.log(`%cBBB PWA ${VERSION} — BUILD: ${BUILD_TIME}`, 'color: gold; font-weight: bold');
+
 
 // === PREDEFINED DATA (MUST BE OUTSIDE DOMContentLoaded) ===
 const PREDEFINED_COURSES = [

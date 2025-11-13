@@ -45,8 +45,6 @@ function logScreen(name) {
   });
 }
 
-
-
 // ==== State ====
 let roster = [];
 let players = [];
@@ -63,6 +61,9 @@ let inRound = false;
 // ==== DOM Cache ====
 let els = {};
 
+// ========================================
+// === LOAD === (loads data from storage)
+// ========================================
 function load(callback) {
   console.log('%cLOAD: Starting', 'color: cyan');
 
@@ -98,6 +99,13 @@ function load(callback) {
     localStorage.setItem('bbb_courses', JSON.stringify(courses));
   }
 
+  // === FINAL FALLBACK ===
+  if (courses.length === 0) {
+    console.warn('Courses empty — forcing predefined');
+    courses = [...PREDEFINED_COURSES];
+    localStorage.setItem('bbb_courses', JSON.stringify(courses));
+  }
+
   // === CLEAN STATE ===
   players = [];
   currentCourse = null;
@@ -111,13 +119,53 @@ function load(callback) {
   if (callback) callback();
 }
 
+// ========================================
+// === RENDER COURSE SELECT === (uses els)
+// ========================================
+function renderCourseSelect() {
+  console.log('Rendering course select. Courses:', courses.length);
+  if (!els.courseSelect) {
+    console.error('els.courseSelect not ready yet!');
+    return;
+  }
 
+  els.courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
 
-// ==== DOM READY — EVERYTHING INSIDE ====
+  if (courses.length === 0) {
+    console.error('NO COURSES TO RENDER!');
+    els.courseSelect.innerHTML += '<option disabled>No courses available</option>';
+    els.nextToPlayers.disabled = true;
+    return;
+  }
+
+  courses.forEach((c, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = c.name;
+    els.courseSelect.appendChild(opt);
+  });
+
+  const saved = localStorage.getItem('bbb_currentCourse');
+  const savedIdx = parseInt(saved);
+  if (!isNaN(savedIdx) && savedIdx >= 0 && savedIdx < courses.length) {
+    els.courseSelect.value = savedIdx;
+    currentCourse = savedIdx;
+    els.nextToPlayers.disabled = false;
+    console.log('Restored course:', courses[currentCourse].name);
+  } else {
+    localStorage.removeItem('bbb_currentCourse');
+    currentCourse = null;
+    els.nextToPlayers.disabled = true;
+  }
+}
+
+// ========================================
+// === DOM READY — INIT === (builds UI)
+// ========================================
 document.addEventListener('DOMContentLoaded', () => {
   console.log('DOM ready — initializing app');
 
-  // === BUILD ELS CACHE (NO startGame here) ===
+  // === BUILD ELS CACHE ===
   els = {
     courseSetup: document.getElementById('courseSetup'),
     playerSetup: document.getElementById('playerSetup'),
@@ -179,6 +227,20 @@ document.addEventListener('DOMContentLoaded', () => {
     closeDebug: document.getElementById('closeDebug'),
     simResult: document.getElementById('simResult')
   };
+
+  // === INIT: LOAD DATA → RENDER UI ===
+  load(() => {
+    renderCourseSelect();  // NOW SAFE — els exists
+    hideAll();
+    els.courseSetup.classList.remove('hidden');
+    els.historyBtn.disabled = false;
+    logScreen('APP START');
+  });
+
+  // === REST OF YOUR APP (dark mode, roster, game, etc.) ===
+  // ... [all the code from your original file below this line] ...
+  // (I’ll paste it cleanly below)
+
 
   // ==== DARK MODE, CB, DEBUG ====
   function initDarkMode() {
@@ -348,34 +410,6 @@ document.addEventListener('DOMContentLoaded', () => {
     els.startHoleModal.classList.add('hidden');
   }
 
-  function renderCourseSelect() {
-    console.log('Rendering course select. Courses:', courses.length);
-    els.courseSelect.innerHTML = '<option value="">-- Select Course --</option>';
-    
-    if (courses.length === 0) {
-      console.error('NO COURSES TO RENDER!');
-      els.courseSelect.innerHTML += '<option disabled>No courses available</option>';
-      return;
-    }
-
-    courses.forEach((c, i) => {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = c.name;
-      els.courseSelect.appendChild(opt);
-    });
-
-    const saved = localStorage.getItem('bbb_currentCourse');
-    if (saved !== null && courses[parseInt(saved)]) {
-      els.courseSelect.value = saved;
-      currentCourse = parseInt(saved);
-      els.nextToPlayers.disabled = false;
-      console.log('Restored course:', courses[currentCourse].name);
-    } else {
-      els.nextToPlayers.disabled = true;
-    }
-  }
-
   els.courseSelect.addEventListener('change', () => {
     const val = els.courseSelect.value;
     if (val === '') {
@@ -389,55 +423,63 @@ document.addEventListener('DOMContentLoaded', () => {
     save();
   });
 
-  function renderPlayerSelect() {
-    console.log('%cDEBUG: renderPlayerSelect() called', 'color: orange; font-weight: bold');
-    console.log('Players:', players.length, 'Roster:', roster.length);
+function renderPlayerSelect() {
+  console.log('%cDEBUG: renderPlayerSelect() called', 'color: orange; font-weight: bold');
+  console.log('Players:', players.length, 'Roster:', roster.length);
 
-    els.playerSelect.innerHTML = '';
-    roster.forEach((p, i) => {
-      const div = document.createElement('div');
-      div.innerHTML = `<label><input type="checkbox" data-index="${i}" ${players.find(pl => pl.name === p.name) ? 'checked' : ''}> ${p.name}</label>`;
-      els.playerSelect.appendChild(div);
-    });
+  els.playerSelect.innerHTML = '';
+  roster.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.innerHTML = `<label><input type="checkbox" data-index="${i}" ${players.find(pl => pl.name === p.name) ? 'checked' : ''}> ${p.name}</label>`;
+    els.playerSelect.appendChild(div);
+  });
 
-    // === CRITICAL: Re-query startGame AFTER DOM is in view ===
-    els.startGame = document.getElementById('startGame');
-    if (!els.startGame) {
-      console.error('%cFATAL: #startGame NOT FOUND!', 'color: red');
-      return;
-    }
-    console.log('startGame button found:', els.startGame);
-
-    const freshBtn = els.startGame.cloneNode(true);
-    els.startGame.replaceWith(freshBtn);
-    els.startGame = freshBtn;
-
-    els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
-      chk.addEventListener('change', () => {
-        const idx = parseInt(chk.dataset.index);
-        const player = roster[idx];
-        console.log('Checkbox:', player.name, chk.checked ? 'checked' : 'unchecked');
-
-        if (chk.checked) {
-          if (players.length >= MAX_PLAYERS) {
-            chk.checked = false;
-            alert(`Max ${MAX_PLAYERS} players`);
-            return;
-          }
-          players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
-        } else {
-          players = players.filter(p => p.name !== player.name);
-        }
-
-        els.startGame.disabled = players.length < 2;
-        console.log('Button disabled:', els.startGame.disabled, '| Players:', players.length);
-        save();
-      });
-    });
-
-    els.startGame.disabled = players.length < 2;
-    console.log('Initial button state:', els.startGame.disabled ? 'disabled' : 'enabled');
+  // === RE-QUERY & CLONE startGame BUTTON ===
+  const startGameBtn = document.getElementById('startGame');
+  if (!startGameBtn) {
+    console.error('%cFATAL: #startGame NOT FOUND!', 'color: red');
+    return;
   }
+
+  const freshBtn = startGameBtn.cloneNode(true);
+  startGameBtn.replaceWith(freshBtn);
+  els.startGame = freshBtn;
+
+  // === RE-ATTACH CHECKBOXES ===
+  els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
+    chk.addEventListener('change', () => {
+      const idx = parseInt(chk.dataset.index);
+      const player = roster[idx];
+
+      if (chk.checked) {
+        if (players.length >= MAX_PLAYERS) {
+          chk.checked = false;
+          alert(`Max ${MAX_PLAYERS} players`);
+          return;
+        }
+        players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
+      } else {
+        players = players.filter(p => p.name !== player.name);
+      }
+
+      els.startGame.disabled = players.length < 2;
+      save();
+    });
+  });
+
+  els.startGame.disabled = players.length < 2;
+
+  // === ATTACH START GAME LISTENER HERE ===
+  els.startGame.addEventListener('click', () => {
+    if (players.length < 2) return alert('Select at least 2 players');
+    hideAll();
+    els.playerSetup.classList.remove('hidden');
+    els.startHoleModal.classList.remove('hidden');
+    logScreen('START HOLE MODAL');
+  });
+}
+
+
 
   els.nextToPlayers.addEventListener('click', () => {
     if (currentCourse === null) return alert('Select a course');
@@ -447,13 +489,7 @@ document.addEventListener('DOMContentLoaded', () => {
     logScreen('PLAYER SETUP');
   });
 
-  els.startGame.addEventListener('click', () => {
-    if (players.length < 2) return alert('Select at least 2 players');
-    hideAll();
-    els.playerSetup.classList.remove('hidden');
-    els.startHoleModal.classList.remove('hidden');
-    logScreen('START HOLE MODAL');
-  });
+ 
 
   els.confirmStartHole.addEventListener('click', () => {
     const startHoleInput = document.querySelector('input[name="startHole"]:checked');
@@ -535,64 +571,92 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // === CARRY LOGIC ===
-  function getCarryInForHole(holeNumber) {
-    const carry = { firstOn: 0, closest: 0, putt: 0, greenie: 0 };
-    const maxHole = Math.min(holeNumber - 1, HOLES - 1);
-    for (let h = 1; h <= maxHole; h++) {
-      if (!finishedHoles.has(h)) continue;
-      const idx = h - 1;
+ function getCarryInForHole(holeNumber) {
+  const carry = { firstOn: 0, closest: 0, putt: 0, greenie: 0 };
+
+  for (let h = 1; h < holeNumber; h++) {
+    if (!finishedHoles.has(h)) continue;
+
+    const idx = h - 1;
+    const par = courses[currentCourse].pars[idx];
+    const isPar3 = par === 3;
+    const scores = players.map(p => p.scores[idx]).filter(Boolean);
+
+    // === FIRST ON (only Par 4/5) ===
+    if (!isPar3) {
+      if (scores.some(s => s.firstOn)) {
+        carry.firstOn = 0;  // awarded → reset carry
+      } else {
+        carry.firstOn++;    // no winner → carry forward
+      }
+    }
+
+    // === GREENIE (only Par 3) ===
+    if (isPar3) {
+      if (scores.some(s => s.firstOn)) {  // firstOn = Greenie on Par 3
+        carry.greenie = 0;
+      } else {
+        carry.greenie++;
+      }
+    }
+
+    // === CLOSEST (all holes) ===
+    if (scores.some(s => s.closest)) {
+      carry.closest = 0;
+    } else {
+      carry.closest++;
+    }
+
+    // === PUTT (all holes) ===
+    if (scores.some(s => s.putt)) {
+      carry.putt = 0;
+    } else {
+      carry.putt++;
+    }
+  }
+
+  return carry;
+}
+
+
+
+ function precomputeAllTotals() {
+  players.forEach(p => {
+    let total = 0;
+    p._cachedHoleTotals = {};
+
+    for (let idx = 0; idx < HOLES; idx++) {
+      const holeNumber = idx + 1;
+      if (!finishedHoles.has(holeNumber)) continue;
+
+      const s = p.scores[idx] || {};
+      const carryIn = getCarryInForHole(holeNumber);
       const par = courses[currentCourse].pars[idx];
       const isPar3 = par === 3;
-      const scores = players.map(p => p.scores[idx]).filter(Boolean);
 
-      if (scores.some(s => s.firstOn)) {
-        if (isPar3) carry.greenie = 0;
-        else carry.firstOn = 0;
-      } else {
-        if (isPar3) carry.greenie++;
-        else carry.firstOn++;
-      }
+      let holePoints = 0;
 
-      if (scores.some(s => s.closest)) carry.closest = 0;
-      else carry.closest++;
+      // Base points
+      if (s.firstOn) holePoints += 1;
+      if (s.closest) holePoints += 1;
+      if (s.putt) holePoints += 1;
 
-      if (scores.some(s => s.putt)) carry.putt = 0;
-      else carry.putt++;
-    }
-    return carry;
-  }
-
-  function precomputeAllTotals() {
-    players.forEach(p => {
-      let total = 0;
-      p._cachedHoleTotals = {};
-
-      for (let idx = 0; idx < HOLES; idx++) {
-        const holeNumber = idx + 1;
-        if (!finishedHoles.has(holeNumber)) continue;
-
-        const s = p.scores[idx] || {};
-        const carryIn = getCarryInForHole(holeNumber);
-        const prevWasPar3 = holeNumber > 1 && courses[currentCourse].pars[holeNumber - 2] === 3;
-
-        let holePoints = 0;
-        if (s.firstOn) holePoints += 1;
-        if (s.closest) holePoints += 1;
-        if (s.putt) holePoints += 1;
-
-        if (holeNumber < HOLES) {
-          if (s.firstOn) holePoints += carryIn[prevWasPar3 ? 'greenie' : 'firstOn'];
-          if (s.closest) holePoints += carryIn.closest;
-          if (s.putt) holePoints += carryIn.putt;
+      // Carry-in
+      if (holeNumber < HOLES) {
+        if (s.firstOn) {
+          holePoints += isPar3 ? carryIn.greenie : carryIn.firstOn;
         }
-
-        p._cachedHoleTotals[idx] = holePoints;
-        total += holePoints;
+        if (s.closest) holePoints += carryIn.closest;
+        if (s.putt) holePoints += carryIn.putt;
       }
 
-      p._cachedTotal = total;
-    });
-  }
+      p._cachedHoleTotals[idx] = holePoints;
+      total += holePoints;
+    }
+
+    p._cachedTotal = total;
+  });
+}
 
   function getRunningTotal(player) {
     let sum = 0;
@@ -730,48 +794,58 @@ document.addEventListener('DOMContentLoaded', () => {
     els.holeSummary.innerHTML = content;
   }
 
-  function renderRoundSummary() {
-    const el = document.getElementById('roundSummary');
-    if (!el) return;
+ function renderRoundSummary() {
+  const el = document.getElementById('roundSummary');
+  if (!el) return;
 
-    let awarded = 0, consumed = 0, open = 0;
+  let awarded = 0, consumed = 0, open = 0;
 
-    finishedHoles.forEach(h => {
-      const idx = h - 1;
-      players.forEach(p => {
-        const s = p.scores[idx] || {};
-        if (s.firstOn) awarded++;
-        if (s.closest) awarded++;
-        if (s.putt) awarded++;
-      });
+  // === Count points awarded on finished holes ===
+  finishedHoles.forEach(h => {
+    const idx = h - 1;
+    players.forEach(p => {
+      const s = p.scores[idx] || {};
+      if (s.firstOn) awarded++;
+      if (s.closest) awarded++;
+      if (s.putt) awarded++;
     });
+  });
 
-    for (let h = 1; h <= HOLES; h++) {
-      if (!finishedHoles.has(h)) continue;
-      const carryIn = getCarryInForHole(h);
-      const idx = h - 1;
-      players.forEach(p => {
-        const s = p.scores[idx] || {};
-        if (s.firstOn && carryIn.firstOn) consumed += carryIn.firstOn;
-        if (s.closest && carryIn.closest) consumed += carryIn.closest;
-        if (s.putt && carryIn.putt) consumed += carryIn.putt;
-      });
-    }
+  // === Count carry-in consumed on finished holes ===
+  for (let h = 1; h <= HOLES; h++) {
+    if (!finishedHoles.has(h)) continue;
+    const carryIn = getCarryInForHole(h);
+    const idx = h - 1;
+    const par = courses[currentCourse].pars[idx];
+    const isPar3 = par === 3;
 
+    players.forEach(p => {
+      const s = p.scores[idx] || {};
+      if (s.firstOn) consumed += isPar3 ? carryIn.greenie : carryIn.firstOn;
+      if (s.closest) consumed += carryIn.closest;
+      if (s.putt) consumed += carryIn.putt;
+    });
+  }
+
+  // === Open carry: only if currentHole < 18 ===
+  if (currentHole < HOLES) {
     const nextCarry = getCarryInForHole(currentHole + 1);
     open = nextCarry.firstOn + nextCarry.closest + nextCarry.putt + nextCarry.greenie;
-
-    const expected = finishedHoles.size * 3;
-    const total = awarded + consumed + open;
-
-    el.innerHTML = `
-      <div style="font-size:0.9rem;line-height:1.5;">
-        <strong>Round:</strong> ${awarded} awarded + ${consumed} consumed + ${open} open = <strong>${total}</strong><br>
-        <small>${total === expected ? 'Checkmark' : 'Cross'} Expected: ${expected}</small>
-      </div>
-    `;
-    el.classList.remove('hidden');
+  } else {
+    open = 0;  // No carry after hole 18
   }
+
+  const expected = finishedHoles.size * 3;
+  const total = awarded + consumed + open;
+
+  el.innerHTML = `
+    <div style="font-size:0.9rem;line-height:1.5;">
+      <strong>Round:</strong> ${awarded} awarded + ${consumed} consumed + ${open} open = <strong>${total}</strong><br>
+      <small>${total === expected ? 'Checkmark' : 'Cross'} Expected: ${expected}</small>
+    </div>
+  `;
+  el.classList.remove('hidden');
+}
 
   function toggleScore(player, holeIdx, point) {
     const score = player.scores[holeIdx];
@@ -926,7 +1000,7 @@ document.addEventListener('DOMContentLoaded', () => {
     a.href = url;
     a.download = `BBB_${course.name.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
-    URL.revokeObjectURL(url);
+    URL.revokeObjectObjectURL(url);
   }
 
   function showSummary() {
@@ -1024,13 +1098,8 @@ document.addEventListener('DOMContentLoaded', () => {
       logScreen('BACK TO SETUP');
     });
   });
-
-  // ==== INIT ===
-  load(() => {
-    renderCourseSelect();
-    hideAll();
-    els.courseSetup.classList.remove('hidden');
-    els.historyBtn.disabled = false;
-    logScreen('APP START');
-  });
 });
+
+
+
+

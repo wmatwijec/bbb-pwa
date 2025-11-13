@@ -447,9 +447,9 @@ function renderPlayerSelect() {
     return;
   }
 
-  // === SHOW BUTTON (it's already in DOM) ===
-  const container = els.startGame.parentElement; // the <div style="margin-top: 1rem; ...">
-  container.style.display = 'block'; // ensure visible
+  // === SHOW BUTTON CONTAINER ===
+  const container = els.startGame.parentElement;
+  container.style.display = 'block';
 
   // === ATTACH CHECKBOX LISTENERS ===
   els.playerSelect.querySelectorAll('input[type="checkbox"]').forEach(chk => {
@@ -476,50 +476,17 @@ function renderPlayerSelect() {
   // === INITIAL STATE ===
   els.startGame.disabled = players.length < 2;
 
-  // === ATTACH START GAME LISTENER (ONLY ONCE) ===
+  // === ATTACH START GAME LISTENER (CORRECTED) ===
   els.startGame.onclick = () => {
     if (players.length < 2) return alert('Select at least 2 players');
     hideAll();
-    els.playerSetup.classList.remove('hidden');
-    els.startHoleModal.classList.remove('hidden');
+    els.startHoleModal.classList.remove('hidden');  // ONLY THIS
     logScreen('START HOLE MODAL');
   };
 }
 
 
-// === HELPER FUNCTIONS (add these outside renderPlayerSelect) ===
-function handleCheckboxChange() {
-  const chk = event.target;
-  const idx = parseInt(chk.dataset.index);
-  const player = roster[idx];
 
-  if (chk.checked) {
-    if (players.length >= MAX_PLAYERS) {
-      chk.checked = false;
-      alert(`Max ${MAX_PLAYERS} players`);
-      return;
-    }
-    players.push({ ...player, scores: Array(HOLES).fill(null).map(() => ({})), gir: Array(HOLES).fill(false), _cachedTotal: 0, _cachedHoleTotals: {} });
-  } else {
-    players = players.filter(p => p.name !== player.name);
-  }
-
-  updateStartGameButton();
-  save();
-}
-
-function updateStartGameButton() {
-  els.startGame.disabled = players.length < 2;
-  console.log('Button state:', els.startGame.disabled ? 'disabled' : 'enabled', '| Players:', players.length);
-}
-
-function handleStartGame() {
-  if (players.length < 2) return alert('Select at least 2 players');
-  hideAll();
-  els.playerSetup.classList.remove('hidden');
-  els.startHoleModal.classList.remove('hidden');
-  logScreen('START HOLE MODAL');
-}
 
 
 

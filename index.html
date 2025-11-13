@@ -98,7 +98,24 @@
     .control-bar { display:flex; justify-content:center; gap:0.5rem; margin:1rem 0; flex-wrap:wrap; }
     .center-block { max-width:800px; margin:0 auto; width:100%; }
 
-    /* MOBILE FULL WIDTH */
+    
+    #holeDisplay {
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+
+    #scoreTable { width:100%; max-width:800px; margin:0.5rem auto; border-collapse:collapse; }
+    #scoreTable th, #scoreTable td { padding:0.75rem; text-align:center; border-bottom:1px solid #ddd; }
+    #scoreTable th { background:var(--table-header); color:#fff; font-weight:600; }
+    #scoreTable th:first-child, #scoreTable td:first-child { text-align:left; }
+    tbody tr:nth-child(even) { background:var(--table-bg); }
+
+    input[type="checkbox"] { width:24px; height:24px; transform:scale(1.5); margin:0 8px; cursor:pointer; }
+    @media (max-width:768px) { input[type="checkbox"] { width:28px; height:28px; transform:scale(1.6); } }
+
+/* MOBILE FULL WIDTH */
     @media (max-width: 768px) {
       .center-block {
         width: 100% !important;
@@ -117,21 +134,44 @@
       body { padding-bottom: 100px !important; }
     }
 
-    #holeDisplay {
-      font-size: 1.1rem;
-      font-weight: 600;
-      text-align: center;
-      margin: 0.5rem 0;
-    }
+    
+/* MOBILE: Ensure course setup buttons are visible */
+@media (max-width: 768px) {
+  #courseSetup {
+    padding: 1rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  #courseSetup > div {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+    align-items: center !important;
+  }
+  
+  #courseSelect {
+    width: 100% !important;
+    max-width: none !important;
+    font-size: 1rem !important;
+  }
+  
+  #addCourse, #nextToPlayers {
+    width: 100% !important;
+    max-width: none !important;
+    font-size: 1rem !important;
+    padding: 0.75rem !important;
+  }
+  
+  #nextToPlayers:disabled {
+    opacity: 0.4 !important;
+    background: #ccc !important;
+    cursor: not-allowed !important;
+  }
+}
 
-    #scoreTable { width:100%; max-width:800px; margin:0.5rem auto; border-collapse:collapse; }
-    #scoreTable th, #scoreTable td { padding:0.75rem; text-align:center; border-bottom:1px solid #ddd; }
-    #scoreTable th { background:var(--table-header); color:#fff; font-weight:600; }
-    #scoreTable th:first-child, #scoreTable td:first-child { text-align:left; }
-    tbody tr:nth-child(even) { background:var(--table-bg); }
 
-    input[type="checkbox"] { width:24px; height:24px; transform:scale(1.5); margin:0 8px; cursor:pointer; }
-    @media (max-width:768px) { input[type="checkbox"] { width:28px; height:28px; transform:scale(1.6); } }
 
     /* === TIGHT HOLE & ROUND SUMMARY === */
     .holeSummary,

@@ -785,6 +785,35 @@ function renderPlayerSelect() {
       if (carryOut.greenie) carryOutLines.push(`GR: +${carryOut.greenie}`);
     }
 
+   function renderHoleSummary(carryIn, isFinished) {
+    if (!els.holeSummary) return;
+    const holeIdx = currentHole - 1;
+    const par = courses[currentCourse].pars[holeIdx];
+    const isPar3 = par === 3;
+
+    let awarded = 0;
+    let carryOutLines = [];
+    let carryInLines = [];
+
+    if (carryIn.firstOn) carryInLines.push(`FO: +${carryIn.firstOn}`);
+    if (carryIn.closest) carryInLines.push(`CL: +${carryIn.closest}`);
+    if (carryIn.putt) carryInLines.push(`P: +${carryIn.putt}`);
+    if (carryIn.greenie) carryInLines.push(`GR: +${carryIn.greenie}`);
+
+    if (isFinished) {
+      players.forEach(p => {
+        const s = p.scores[holeIdx] || {};
+        if (s.firstOn) awarded += 1;
+        if (s.closest) awarded += 1;
+        if (s.putt) awarded += 1;
+      });
+      const carryOut = getCarryInForHole(currentHole + 1);
+      if (carryOut.firstOn) carryOutLines.push(`FO: +${carryOut.firstOn}`);
+      if (carryOut.closest) carryOutLines.push(`CL: +${carryOut.closest}`);
+      if (carryOut.putt) carryOutLines.push(`P: +${carryOut.putt}`);
+      if (carryOut.greenie) carryOutLines.push(`GR: +${carryOut.greenie}`);
+    }
+
     const content = isFinished ? `
       <div class="summary-awarded">
         <strong>Awarded:</strong> ${awarded}<br>
@@ -799,6 +828,10 @@ function renderPlayerSelect() {
         <strong>No Carry In</strong>
       </div>
     `;
+
+    els.holeSummary.innerHTML = content;
+  }
+
 
     els.holeSummary.innerHTML = content;
   }
@@ -847,12 +880,16 @@ function renderPlayerSelect() {
   const expected = finishedHoles.size * 3;
   const total = awarded + consumed + open;
 
+  // === TIGHT LABELS + COMPACT LAYOUT ===
   el.innerHTML = `
-    <div style="font-size:0.9rem;line-height:1.5;">
-      <strong>Round:</strong> ${awarded} awarded + ${consumed} consumed + ${open} open = <strong>${total}</strong><br>
-      <small>${total === expected ? 'Checkmark' : 'Cross'} Expected: ${expected}</small>
+    <div style="font-size:0.9rem; line-height:1.4;">
+      Wins: <strong>${awarded}</strong> | 
+      C_Car: <strong>${consumed}</strong> | 
+      O_Car: <strong>${open}</strong> = <strong>${total}</strong><br>
+      <small>Total Expected Pts: <strong>${expected}</strong></small>
     </div>
   `;
+
   el.classList.remove('hidden');
 }
 

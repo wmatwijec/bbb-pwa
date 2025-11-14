@@ -793,7 +793,7 @@ function renderPlayerSelect() {
     </div>
   ` : carryInLines.length ? `
     <div class="summary-carry-in">
-      <strong>C_Car:</strong> ${carryInLines.join(', ')}
+      <strong>A_Car:</strong> ${carryInLines.join(', ')}
     </div>
   ` : `
     <div class="summary-no-carry">

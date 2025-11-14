@@ -1,273 +1,212 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BBB Golf</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="icon.png" />
+  <meta id="cacheBuster" name="version" content="202511131530">
 
- <style>
-
- 
-/* === GLOBAL: NO TOP GAP + SAFE PADDING === */
-html, body {
-  margin: 0;
-  padding: 0;
-  height: 100%;
-  overflow-x: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-
-
-
-/* Ensure full height */
-#courseSetup, #playerSetup, #game, #summary {
-  display: flex;
-  flex-direction: column;
-}
-
-
-
-  :root {
-    --bg: #f4f4f4;
-    --card: #fff;
-    --text: #222;
-    --green: #0f0;
-    --btn-bg: #0f0;
-    --btn-text: #000;
-    --table-header: #555;
-    --table-bg: #eee;
-  }
-  [data-theme="dark"] {
-    --bg: #111;
-    --card: #222;
-    --text: #eee;
-    --green: #0f0;
-    --btn-bg: #0f0;
-    --btn-text: #000;
-    --table-header: #444;
-    --table-bg: #333;
-  }
-
-  * { box-sizing: border-box; }
-
-  body {
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
-  margin: 0;
-  padding: 0;
-}
-
-.card {
-  background: var(--card);
-  padding: 1rem;
-  border-radius: 12px;
-  margin: 0 auto 1rem;
-  max-width: 800px;
-  width: 100%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-
-#courseSetup, #playerSetup, #game, #summary {
-  display: flex;
-  flex-direction: column;
-}
-
-  
-
-  h1 { 
-    color: var(--green); 
-    text-align: center; 
-    margin: 0.5rem 0; 
-    font-size: 1.4rem; 
-  }
-  h1 span { 
-    font-size: 0.7rem; 
-    color: #666; 
-    font-weight: normal; 
-  }
-
-  button {
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    border: none;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    margin: 0.25rem;
-  }
-  button:disabled { opacity: 0.4; cursor: not-allowed; }
-
- 
-
-/* === ICON-ONLY 40px BUTTONS (HORIZONTAL SCROLL) === */
-@media (max-width: 768px) {
-  .control-bar {
-    position: static !important;
-    width: 100% !important;
-    background: var(--card);
-    padding: 0.4rem 0.3rem !important;
-    border-top: 1px solid rgba(0,0,0,0.1);
-    display: flex;
-    flex-wrap: nowrap !important;
-    justify-content: flex-start !important;
-    gap: 0.3rem !important;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .control-bar::-webkit-scrollbar { display: none; }
-
-  .control-bar button {
-    flex: 0 0 40px !important;
-    width: 40px !important;
-    height: 40px !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    border-radius: 8px !important;
-    background: var(--btn-bg);
-    color: var(--btn-text);
-    border: none;
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    font-size: 0 !important;
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  }
-
-  .control-bar button svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-  pointer-events: none;
-}
-
-/* FORCE VISIBILITY */
-.control-bar button svg * {
-  fill: inherit !important;
-}
-
-/* Light mode: black icons */
-.control-bar button svg {
-  fill: #000;
-}
-
-/* Dark mode: white icons */
-[data-theme="dark"] .control-bar button svg {
-  fill: #eee;
-}
-
-/* Disabled: dim button, keep icon sharp */
-.control-bar button:disabled {
-  opacity: 0.4;
-}
-.control-bar button:disabled svg {
-  fill: inherit !important;
-  opacity: 1;
-}
-}
-
-
-  .hidden {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-  }
-
-  .card {
-    background: var(--card);
-    padding: 1rem;
-    border-radius: 12px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  }
-
-  
-  .center-block { 
-    max-width: 800px; 
-    margin: 0 auto; 
-    width: 100%; 
-  }
-
-  #holeDisplay {
-    font-size: 1.1rem;
-    font-weight: 600;
-    text-align: center;
-    margin: 0.5rem 0;
-  }
-
-  #scoreTable { 
-    width: 100%; 
-    max-width: 800px; 
-    margin: 0.5rem auto; 
-    border-collapse: collapse; 
-  }
-  #scoreTable th, #scoreTable td { 
-    padding: 0.75rem; 
-    text-align: center; 
-    border-bottom: 1px solid #ddd; 
-  }
-  #scoreTable th { 
-    background: var(--table-header); 
-    color: #fff; 
-    font-weight: 600; 
-  }
-  #scoreTable th:first-child, #scoreTable td:first-child { text-align: left; }
-  tbody tr:nth-child(even) { background: var(--table-bg); }
-
- 
-/* === CHECKBOXES: SMALL & TIGHT ON ALL MOBILE === */
-input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-  transform: scale(1);
-  margin: 0 6px;
-  cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  input[type="checkbox"] {
-    width: 16px !important;
-    height: 16px !important;
-    transform: scale(1) !important;
-    margin: 0 4px !important;
-  }
-
-  /* TIGHTEN TABLE PADDING IN MOBILE */
-  #scoreTable th, #scoreTable td {
-    padding: 0.5rem 0.4rem !important;
-    font-size: 0.9rem !important;
-  }
-  #scoreTable th:first-child, #scoreTable td:first-child {
-    padding-left: 0.6rem !important;
-  }
-}
-  
-  /* Remove forced bottom padding */
-  body {
-    padding-bottom: 1rem !important;
-  }
-
-  /* Ensure game screen has room */
-  #game {
-    padding-bottom: 1rem !important;
-  }
-
-
-    input[type="checkbox"] { 
-      width: 28px; 
-      height: 28px; 
-      transform: scale(1.6); 
+  <style>
+    /* === GLOBAL: NO TOP GAP + SAFE PADDING === */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow-x: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     }
 
-    /* COURSE SETUP */
+    :root {
+      --bg: #f4f4f4;
+      --card: #fff;
+      --text: #222;
+      --green: #0f0;
+      --btn-bg: #0f0;
+      --btn-text: #000;
+      --table-header: #555;
+      --table-bg: #eee;
+    }
+    [data-theme="dark"] {
+      --bg: #111;
+      --card: #222;
+      --text: #eee;
+      --green: #0f0;
+      --btn-bg: #0f0;
+      --btn-text: #000;
+      --table-header: #444;
+      --table-bg: #333;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      margin: 0;
+      padding: 0;
+      padding-bottom: 1rem; /* Single declaration */
+    }
+
+    .card {
+      background: var(--card);
+      padding: 1rem;
+      border-radius: 12px;
+      margin: 0 auto 1rem;
+      max-width: 800px;
+      width: 100%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    #courseSetup, #playerSetup, #game, #summary {
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 { 
+      color: var(--green); 
+      text-align: center; 
+      margin: 0.5rem 0; 
+      font-size: 1.4rem; 
+    }
+
+    button {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 0.25rem;
+    }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* === ICON-ONLY 40px BUTTONS (HORIZONTAL SCROLL) === */
+    @media (max-width: 768px) {
+      .control-bar {
+        position: static !important;
+        width: 100% !important;
+        background: var(--card);
+        padding: 0.4rem 0.3rem !important;
+        border-top: 1px solid rgba(0,0,0,0.1);
+        display: flex;
+        flex-wrap: nowrap !important;
+        justify-content: flex-start !important;
+        gap: 0.3rem !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+      }
+      .control-bar::-webkit-scrollbar { display: none; }
+
+      .control-bar button {
+        flex: 0 0 40px !important;
+        width: 40px !important;
+        height: 40px !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 8px !important;
+        background: var(--btn-bg);
+        color: var(--btn-text);
+        border: none;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        font-size: 0 !important;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      }
+
+      .control-bar button svg {
+        width: 20px;
+        height: 20px;
+        fill: currentColor;
+        pointer-events: none;
+      }
+
+      /* FORCE VISIBILITY */
+      .control-bar button svg * { fill: inherit !important; }
+      .control-bar button svg { fill: #000; }
+      [data-theme="dark"] .control-bar button svg { fill: #eee; }
+      .control-bar button:disabled { opacity: 0.4; }
+      .control-bar button:disabled svg { fill: inherit !important; opacity: 1; }
+    }
+
+    .hidden {
+      display: none !important;
+      visibility: hidden !important;
+      opacity: 0 !important;
+      pointer-events: none !important;
+    }
+
+    .center-block { 
+      max-width: 800px; 
+      margin: 0 auto; 
+      width: 100%; 
+    }
+
+    #holeDisplay {
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-align: center;
+      margin: 0.5rem 0;
+    }
+
+    #scoreTable { 
+      width: 100%; 
+      max-width: 800px; 
+      margin: 0.5rem auto; 
+      border-collapse: collapse; 
+    }
+    #scoreTable th, #scoreTable td { 
+      padding: 0.75rem; 
+      text-align: center; 
+      border-bottom: 1px solid #ddd; 
+    }
+    #scoreTable th { 
+      background: var(--table-header); 
+      color: #fff; 
+      font-weight: 600; 
+    }
+    #scoreTable th:first-child, #scoreTable td:first-child { text-align: left; }
+    tbody tr:nth-child(even) { background: var(--table-bg); }
+
+    /* === CHECKBOXES: FINAL VERSION (NO DUPLICATES) === */
+    input[type="checkbox"] {
+      width: 28px;
+      height: 28px;
+      transform: scale(1.6);
+      margin: 0 6px;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      input[type="checkbox"] {
+        width: 16px !important;
+        height: 16px !important;
+        transform: scale(1) !important;
+        margin: 0 4px !important;
+      }
+
+      /* TIGHTEN TABLE PADDING IN MOBILE */
+      #scoreTable th, #scoreTable td {
+        padding: 0.5rem 0.4rem !important;
+        font-size: 0.9rem !important;
+      }
+      #scoreTable th:first-child, #scoreTable td:first-child {
+        padding-left: 0.6rem !important;
+      }
+    }
+
+    /* Ensure game screen has room */
+    #game {
+      padding-bottom: 1rem !important;
+    }
+
+    /* === COURSE SETUP (ONLY ONCE) === */
     #courseSetup {
       padding: 1rem !important;
       display: flex !important;
@@ -328,157 +267,117 @@ input[type="checkbox"] {
       color: #999 !important;
       cursor: not-allowed !important;
     }
-  
 
- .holeSummary,
-#roundSummary {
-  margin: 0.3rem auto !important;
-  padding: 0.35rem !important;
-  line-height: 1.2 !important;
-  font-size: 0.82rem !important;
-  text-align: center;
-  background: #fff !important;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border: 1px solid #d4edda;
-  max-width: 800px;
-}
+    .holeSummary,
+    #roundSummary {
+      margin: 0.3rem auto !important;
+      padding: 0.35rem !important;
+      line-height: 1.2 !important;
+      font-size: 0.82rem !important;
+      text-align: center;
+      background: #fff !important;
+      border-radius: 6px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      border: 1px solid #d4edda;
+      max-width: 800px;
+    }
 
-.holeSummary {
-  font-weight: bold !important;
-  color: #dc3545 !important;
-}
+    .holeSummary {
+      font-weight: bold !important;
+      color: #dc3545 !important;
+    }
 
-#roundSummary {
-  color: #dc3545 !important;
-  font-weight: 600;
-  font-size: 0.80rem !important;
-}
+    #roundSummary {
+      color: #dc3545 !important;
+      font-weight: 600;
+      font-size: 0.80rem !important;
+    }
 
-#roundSummary small { 
-  color: #a00 !important;
-  font-weight: normal;
-  font-size: 0.76rem !important;
-}
+    #roundSummary small { 
+      color: #a00 !important;
+      font-weight: normal;
+      font-size: 0.76rem !important;
+    }
 
-/* ONE-LINE TIGHT LAYOUT */
-.holeSummary > div,
-.summary-awarded,
-.summary-carry-in,
-.summary-no-carry {
-  margin: 0 !important;
-  padding: 0 !important;
-  font-size: 0.78rem !important;
-  line-height: 1.2 !important;
-}
+    /* ONE-LINE TIGHT LAYOUT */
+    .holeSummary > div,
+    .summary-awarded,
+    .summary-carry-in,
+    .summary-no-carry {
+      margin: 0 !important;
+      padding: 0 !important;
+      font-size: 0.78rem !important;
+      line-height: 1.2 !important;
+    }
 
-  .audit-good { color: #0f0; } 
-  .audit-bad { color: #f00; }
-  .audit-line { margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.5; }
-  .history-item { background: var(--card); padding: 0.75rem; margin: 0.5rem 0; border-radius: 8px; cursor: pointer; }
-  .player-tag { display: inline-block; background: #0f0; color: #000; padding: 0.25rem 0.5rem; border-radius: 6px; margin: 0.25rem; font-size: 0.85rem; }
+    .audit-good { color: #0f0; } 
+    .audit-bad { color: #f00; }
+    .audit-line { margin-top: 0.5rem; font-size: 0.85rem; line-height: 1.5; }
+    .history-item { background: var(--card); padding: 0.75rem; margin: 0.5rem 0; border-radius: 8px; cursor: pointer; }
+    .player-tag { display: inline-block; background: #0f0; color: #000; padding: 0.25rem 0.5rem; border-radius: 6px; margin: 0.25rem; font-size: 0.85rem; }
 
-  #playerSelect { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 0.5rem; 
-    max-width: 600px; 
-    margin: 0 auto; 
-  }
-  #playerSelect label { 
-    display: flex; 
-    align-items: center; 
-    gap: 0.5rem; 
-    font-size: 1.1rem; 
-    justify-content: flex-start; 
-  }
-</style>
-
+    #playerSelect { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 0.5rem; 
+      max-width: 600px; 
+      margin: 0 auto; 
+    }
+    #playerSelect label { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+      font-size: 1.1rem; 
+      justify-content: flex-start; 
+    }
+  </style>
 </head>
-
-
-<script>
-  if ('serviceWorker' in navigator) {
-   window.addEventListener('load', () => {
-     navigator.serviceWorker.register('sw.js')
-       .then(reg => console.log('SW registered', reg))
-       .catch(err => console.log('SW failed', err));
-   });
-  }
-</script>
-
-
-
-
-<!-- BACKDROP -->
-<div id="bbbHelpBackdrop" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9998;"></div>
-
-<script>
-  const helpBtn = document.getElementById('bbbHelpBtn');
-  const modal = document.getElementById('bbbHelpModal');
-  const backdrop = document.getElementById('bbbHelpBackdrop');
-  const closeBtn = document.getElementById('closeHelp');
-
-  function openHelp() {
-    modal.classList.remove('hidden');
-    backdrop.classList.remove('hidden');
-  }
-  function closeHelp() {
-    modal.classList.add('hidden');
-    backdrop.classList.add('hidden');
-  }
-
-  helpBtn?.addEventListener('click', openHelp);
-  closeBtn?.addEventListener('click', closeHelp);
-  backdrop?.addEventListener('click', closeHelp);
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeHelp();
-  });
-</script>
 
 <body>
 
   <!-- COURSE SETUP -->
-  <div id="courseSetup" class="card center-block">
+  <section id="courseSetup" class="card center-block" role="region" aria-labelledby="courseSetupTitle">
+    <h2 id="courseSetupTitle" class="hidden">Course Setup</h2>
     <div style="display:flex;gap:0.5rem;align-items:center;justify-content:center;flex-wrap:wrap;">
       <select id="courseSelect" style="flex:1;max-width:300px;"></select>
       <button id="addCourse">+ Course</button>
       <button id="nextToPlayers" disabled>Next</button>
     </div>
-  </div>
+  </section>
 
   <!-- PLAYER SETUP -->
- <div id="playerSetup" class="card hidden center-block">
-  <button id="backToCourse">Back</button>
-  <div id="playerSelect"></div>
-  
-  <!-- MOVED: Start Round button here, not in bottom nav -->
-  <div style="margin-top: 1rem; text-align: center;">
-    <button id="startGame" disabled style="width: 100%; padding: 1rem; font-size: 1.1rem;">Start Round</button>
-  </div>
- </div>
+  <section id="playerSetup" class="card hidden center-block" role="region" aria-labelledby="playerSetupTitle">
+    <h2 id="playerSetupTitle" class="hidden">Player Setup</h2>
+    <button id="backToCourse">Back</button>
+    <div id="playerSelect"></div>
+    <div style="margin-top: 1rem; text-align: center;">
+      <button id="startGame" disabled style="width: 100%; padding: 1rem; font-size: 1.1rem;">Start Round</button>
+    </div>
+  </section>
 
   <!-- ROSTER -->
-  <div id="roster" class="card hidden center-block">
+  <section id="roster" class="card hidden center-block" role="region" aria-labelledby="rosterTitle">
+    <h2 id="rosterTitle" class="hidden">Roster</h2>
     <button id="backToCourseFromRoster">Back</button>
     <input id="rosterName" placeholder="Name" style="width:100%;margin:0.5rem 0;" />
     <input id="rosterPhone" placeholder="Phone" style="width:100%;margin:0.5rem 0;" />
     <input id="rosterEmail" placeholder="Email" style="width:100%;margin:0.5rem 0;" />
     <button id="addToRoster">Add</button>
     <div id="rosterList"></div>
-  </div>
+  </section>
 
   <!-- COURSE FORM -->
-  <div id="courseForm" class="card hidden center-block">
+  <section id="courseForm" class="card hidden center-block" role="region" aria-labelledby="courseFormTitle">
+    <h2 id="courseFormTitle" class="hidden">Add Course</h2>
     <button id="cancelCourse">Cancel</button>
     <input id="courseName" placeholder="Course Name" style="width:100%;margin:0.5rem 0;" />
     <div id="pars"></div>
     <button id="saveCourse">Save Course</button>
-  </div>
+  </section>
 
- 
   <!-- GAME SCREEN -->
-  <div id="game" class="card hidden center-block">
+  <section id="game" class="card hidden center-block" role="region" aria-labelledby="gameTitle">
+    <h2 id="gameTitle" class="hidden">Game</h2>
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap;">
       <h3 id="holeDisplay"></h3>
       <div>
@@ -507,70 +406,79 @@ input[type="checkbox"] {
     <div class="holeSummary"></div>
     <div id="roundSummary" class="hidden"></div>
 
-<div class="control-bar">
-  <!-- 1. SMS -->
-  <button id="sendSMS" title="Send Update">
-    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-  </button>
+    <div class="control-bar">
+      <!-- 1. SMS -->
+      <button id="sendSMS" title="Send Update" aria-label="Send Update">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+      </button>
 
-  <!-- 2. CSV -->
-  <button id="exportCSV" title="Export CSV">
-    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-  </button>
+      <!-- 2. CSV -->
+      <button id="exportCSV" title="Export CSV" aria-label="Export CSV">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      </button>
 
-  <!-- 3. Complete -->
-  <button id="completeRound" title="Complete Round">
-    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-  </button>
+      <!-- 3. Complete -->
+      <button id="completeRound" title="Complete Round" aria-label="Complete Round">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      </button>
 
-  <!-- 4. Save -->
-  <button id="saveRound" title="Save Round">
-    <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
-  </button>
+      <!-- 4. Save -->
+      <button id="saveRound" title="Save Round" aria-label="Save Round">
+        <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+      </button>
 
-  <!-- 5. Exit -->
-  <button id="exitRound" title="Exit">
-    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-  </button>
+      <!-- 5. Exit -->
+      <button id="exitRound" title="Exit" aria-label="Exit">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+      </button>
 
-  <!-- 6. Dark Mode -->
-  <button id="darkModeToggle" title="Toggle Dark Mode">
-    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5.39 0 .74-.15 1.01-.39.26-.23.61-.38.99-.38C16.33 15 15 13.83 15 12c0-3.87-3.13-7-7-7z"/></svg>
-  </button>
+      <!-- 6. Dark Mode -->
+      <button id="darkModeToggle" title="Toggle Dark Mode" aria-label="Toggle Dark Mode">
+        <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5.39 0 .74-.15 1.01-.39.26-.23.61-.38.99-.38C16.33 15 15 13.83 15 12c0-3.87-3.13-7-7-7z"/></svg>
+      </button>
 
-  <!-- 7. Colorblind -->
-  <button id="cbToggle" title="Colorblind Mode">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
-  </button>
+      <!-- 7. Colorblind -->
+      <button id="cbToggle" title="Colorblind Mode" aria-label="Colorblind Mode">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+          <path d="M12 7v10m-5-5h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
 
-  <!-- 8. Roster -->
-  <button id="manageRosterBtn" title="Manage Roster">
-    <svg viewBox="0 0 24 24"><path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="#000"/></svg>
-  </button>
+      <!-- 8. Roster -->
+      <button id="manageRosterBtn" title="Manage Roster" aria-label="Manage Roster">
+        <svg viewBox="0 0 24 24" fill="#000">
+          <path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+        </svg>
+      </button>
 
-  <!-- 9. History -->
-  <button id="historyBtn" title="Round History">
-    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12V9c0-1.1.9-2 2-2h6v2l4-4-4-4v2z" fill="#000"/></svg>
-  </button>
-</div>
-</div>
+      <!-- 9. History -->
+      <button id="historyBtn" title="Round History" aria-label="Round History">
+        <svg viewBox="0 0 24 24" fill="#000">
+          <path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12V9c0-1.1.9-2 2-2h6v2l4-4-4-4v2z"/>
+        </svg>
+      </button>
+    </div>
+  </section>
 
   <!-- SUMMARY -->
-  <div id="summary" class="card hidden center-block">
+  <section id="summary" class="card hidden center-block" role="region" aria-labelledby="summaryTitle">
+    <h2 id="summaryTitle" class="hidden">Summary</h2>
     <button id="backToSetup">Setup</button>
     <h3>Final Leaderboard</h3>
     <ol id="leaderboard"></ol>
     <div class="control-bar">
       <button id="restart">New Round</button>
     </div>
-  </div>
+  </section>
 
   <!-- HISTORY -->
-  <div id="history" class="card hidden center-block">
+  <section id="history" class="card hidden center-block" role="region" aria-labelledby="historyTitle">
+    <h2 id="historyTitle" class="hidden">History</h2>
     <button id="backToSetup">Setup</button>
     <h3>Round History</h3>
     <div id="historyList"></div>
-  </div>
+  </section>
 
   <!-- DEBUG -->
   <div id="debugPanel" class="card hidden" style="position:fixed;bottom:10px;right:10px;width:300px;max-height:80vh;overflow:auto;z-index:1000;">
@@ -581,53 +489,117 @@ input[type="checkbox"] {
 
   <div id="simResult"></div>
 
-  
-<button id="bbbHelpBtn" style="all:unset; cursor:pointer; text-align:center; margin:0.5rem 0; display:block; width:100%;">
-  <h1 style="margin:0; font-size:1.4rem; color:var(--green);">
-    BBB Golf Help
-  </h1>
-</button>
-
-<!-- HIDDEN TIMESTAMP FOR CACHE BUSTING -->
-<meta id="cacheBuster" name="version" content="202511131530">
+  <!-- BBB GOLF HELP BUTTON -->
+  <button id="bbbHelpBtn" type="button" aria-label="Open BBB Golf Help" style="all:unset; cursor:pointer; text-align:center; margin:0.5rem 0; display:block; width:100%;">
+    <span style="font-size:1.4rem; color:var(--green); font-weight:bold;">BBB Golf Help</span>
+  </button>
 
   <!-- COURSE + HOLE INFO BAR -->
- <div id="courseInfoBar" class="card center-block" style="margin: 0.5rem auto; padding: 0.75rem; font-size: 0.95rem; text-align: center; background: var(--card); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); display: none;">
-  <strong id="infoCourseName"></strong> — 
-  Hole <span id="infoCurrentHole"></span> of 18
-  <span id="infoPar" style="margin-left: 0.5rem; color: #0a6b0a;"></span>
- </div>
+  <div id="courseInfoBar" class="card center-block" style="margin: 0.5rem auto; padding: 0.75rem; font-size: 0.95rem; text-align: center; background: var(--card); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); display: none;">
+    <strong id="infoCourseName"></strong> — 
+    Hole <span id="infoCurrentHole"></span> of 18
+    <span id="infoPar" style="margin-left: 0.5rem; color: #0a6b0a;"></span>
+  </div>
 
-<script>
-  // === BBB HELP MODAL JS (NO DOMContentLoaded) ===
-  const helpBtn = document.getElementById('bbbHelpBtn');
-  const modal = document.getElementById('bbbHelpModal');
-  const backdrop = document.getElementById('bbbHelpBackdrop');
-  const closeBtn = document.getElementById('closeHelp');
+  <!-- BBB HELP MODAL -->
+  <div id="bbbHelpModal" class="card hidden" role="dialog" aria-modal="true" aria-labelledby="helpModalTitle" style="position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:90%;max-width:400px;z-index:9999;max-height:80vh;overflow:auto;background:var(--card);border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+    <div style="text-align:center;padding:0.75rem;border-bottom:1px solid #ddd;position:relative;">
+      <h3 id="helpModalTitle" style="margin:0;color:var(--green);font-size:1.1rem;">BBB Golf Icons</h3>
+      <button id="closeHelp" type="button" aria-label="Close help" style="position:absolute;top:8px;right:8px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--text);">×</button>
+    </div>
+    <div style="padding:1rem;display:grid;gap:0.75rem;font-size:0.9rem;">
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+        <div><strong>SMS</strong> – Send live update</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        <div><strong>CSV</strong> – Export scores</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        <div><strong>FIN</strong> – Complete round</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><path d="M17 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+        <div><strong>SAVE</strong> – Save to history</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        <div><strong>EXIT</strong> – Quit without saving</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><path d="M12 3a9 9 0 1 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5.39 0 .74-.15 1.01-.39.26-.23.61-.38.99-.38C16.33 15 15 13.83 15 12c0-3.87-3.13-7-7-7z"/></svg>
+        <div><strong>DARK</strong> – Toggle dark mode</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><circle cx="12" cy="12" r="10" stroke="#000" stroke-width="2" fill="none"/><path d="M12 7v10m-5-5h10" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
+        <div><strong>CB</strong> – Colorblind mode</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+        <div><strong>ROSTER</strong> – Manage players</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0.75rem;">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:#000;"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12V9c0-1.1.9-2 2-2h6v2l4-4-4-4v2z"/></svg>
+        <div><strong>HIST</strong> – View past rounds</div>
+      </div>
+    </div>
+  </div>
 
-  if (helpBtn && modal && backdrop && closeBtn) {
-    helpBtn.addEventListener('click', () => {
-      modal.classList.remove('hidden');
-      backdrop.classList.remove('hidden');
-    });
-    closeBtn.addEventListener('click', () => {
-      modal.classList.add('hidden');
-      backdrop.classList.add('hidden');
-    });
-    backdrop.addEventListener('click', () => {
-      modal.classList.add('hidden');
-      backdrop.classList.add('hidden');
-    });
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+  <!-- BACKDROP -->
+  <div id="bbbHelpBackdrop" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;" aria-hidden="true"></div>
+
+  <!-- SERVICE WORKER -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('SW registered', reg))
+          .catch(err => console.log('SW failed', err));
+      });
+    }
+  </script>
+
+  <!-- APP JS (MUST LOAD FIRST) -->
+  <script src="app-v21.js?v=202511131530"></script>
+
+  <!-- MODAL JS (AFTER APP) -->
+  <script>
+    const helpBtn = document.getElementById('bbbHelpBtn');
+    const modal = document.getElementById('bbbHelpModal');
+    const backdrop = document.getElementById('bbbHelpBackdrop');
+    const closeBtn = document.getElementById('closeHelp');
+
+    if (helpBtn && modal && backdrop && closeBtn) {
+      helpBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        backdrop.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        backdrop.setAttribute('aria-hidden', 'false');
+      });
+      closeBtn.addEventListener('click', () => {
         modal.classList.add('hidden');
         backdrop.classList.add('hidden');
-      }
-    });
-  }
-</script>
-
-<script src="app-v21.js?v=202511131530"></script>
+        modal.setAttribute('aria-hidden', 'true');
+        backdrop.setAttribute('aria-hidden', 'true');
+      });
+      backdrop.addEventListener('click', () => {
+        modal.classList.add('hidden');
+        backdrop.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        backdrop.setAttribute('aria-hidden', 'true');
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+          modal.classList.add('hidden');
+          backdrop.classList.add('hidden');
+          modal.setAttribute('aria-hidden', 'true');
+          backdrop.setAttribute('aria-hidden', 'true');
+        }
+      });
+    }
+  </script>
 
 </body>
 </html>

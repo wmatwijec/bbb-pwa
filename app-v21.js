@@ -662,6 +662,8 @@ function renderPlayerSelect() {
   function updateHole() {
     if (!inRound || players.length === 0 || currentCourse === null || !courses[currentCourse]) return;
 
+    precomputeAllTotals();  // ADD THIS AT TOP — FORCE FRESH CALC
+
     const holeIdx = currentHole - 1;
     const par = courses[currentCourse].pars[holeIdx];
     const isPar3 = par === 3;
@@ -887,9 +889,10 @@ function renderPlayerSelect() {
 
   function finishCurrentHole() {
     finishedHoles.add(currentHole);
-    save();
-    precomputeAllTotals();
+    precomputeAllTotals();  // ALWAYS RE-CALC (even on re-finish)
     updateHole();
+    save();
+    logScreen('FINISHED HOLE ' + currentHole);
   }
 
   function simulateRound() {
@@ -1104,10 +1107,14 @@ function renderPlayerSelect() {
   els.editHole.addEventListener('click', () => {
     if (!finishedHoles.has(currentHole)) return;
     finishedHoles.delete(currentHole);
+    players.forEach(p => {
+    p._cachedHoleTotals = {};
+    p._cachedTotal = 0;
+    });
     precomputeAllTotals();
-    players.forEach(p => p._cachedHoleTotals = {});
     save();
     updateHole();
+    logScreen('EDIT MODE')
   });
 
   els.historyBtn.addEventListener('click', () => {

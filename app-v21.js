@@ -789,11 +789,11 @@ function renderPlayerSelect() {
     const content = isFinished ? `
     <div class="summary-awarded">
       <strong>Wins:</strong> ${awarded} |
-      <strong>C_Car:</strong> ${carryOutLines.length ? carryOutLines.join(', ') : '0'}
+      <strong>O_Car:</strong> ${carryOutLines.length ? carryOutLines.join(', ') : '0'}
     </div>
   ` : carryInLines.length ? `
     <div class="summary-carry-in">
-      <strong>O_Car:</strong> ${carryInLines.join(', ')}
+      <strong>C_Car:</strong> ${carryInLines.join(', ')}
     </div>
   ` : `
     <div class="summary-no-carry">

@@ -63,16 +63,56 @@
   }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
 
- /* === ULTRA-TINY BUTTONS === */
-.control-bar button {
-  padding: 0.4rem 0.6rem !important;
-  font-size: 0.75rem !important;
-  font-weight: 600 !important;
-  min-height: 32px !important;
-  border-radius: 6px !important;
-  margin: 0.2rem !important;
-  flex: 1 !important;
-  max-width: 90px !important;
+ /* === ULTRA-TINY BOTTOM BUTTONS === */
+@media (max-width: 768px) {
+  .control-bar {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    background: var(--card);
+    padding: 0.4rem 0.3rem !important;
+    border-top: 1px solid rgba(0,0,0,0.1);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.3rem !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .control-bar button {
+    flex: 0 1 28% !important;
+    max-width: 90px !important;
+    padding: 0.35rem 0.45rem !important;
+    font-size: 0.68rem !important;
+    font-weight: 600 !important;
+    min-height: 28px !important;
+    border-radius: 5px !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ICONS (optional but pro) */
+  #sendSMS::before { content: "SMS"; }
+  #exportCSV::before { content: "CSV"; }
+  #completeRound::before { content: "FIN"; }
+  #saveRound::before { content: "SAVE"; }
+  #exitRound::before { content: "EXIT"; }
+
+  /* DARK / CB STAY NORMAL */
+  #darkModeToggle,
+  #cbToggle {
+    flex: 0 1 45% !important;
+    max-width: 100px !important;
+    font-size: 0.75rem !important;
+  }
 }
 
 
@@ -92,14 +132,7 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
 
-  .control-bar { 
-    display: flex; 
-    justify-content: center; 
-    gap: 0.5rem; 
-    margin: 1rem 0; 
-    flex-wrap: wrap; 
-  }
-
+  
   .center-block { 
     max-width: 800px; 
     margin: 0 auto; 
@@ -159,23 +192,7 @@ input[type="checkbox"] {
     padding-left: 0.6rem !important;
   }
 }
-
-    .control-bar {
-    position: static !important;           /* NOT fixed */
-    width: 100% !important;
-    max-width: none !important;
-    background: var(--card);
-    padding: 0.75rem 0.5rem;
-    box-shadow: 0 -1px 6px rgba(0,0,0,0.1);
-    border-top: 1px solid rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin: 1rem 0 0 0;
-    border-radius: 8px 8px 0 0;
-  }
-
+  
   /* Remove forced bottom padding */
   body {
     padding-bottom: 1rem !important;
@@ -406,13 +423,15 @@ input[type="checkbox"] {
     <div class="holeSummary"></div>
     <div id="roundSummary" class="hidden"></div>
 
-    <div class="control-bar">
-      <button id="sendSMS">Send Update</button>
-      <button id="exportCSV">Export CSV</button>
-      <button id="completeRound">Complete Round</button>
-      <button id="exitRound">Exit</button>
-      <button id="saveRound">Save Round</button>
-    </div>
+<div class="control-bar">
+  <button id="sendSMS" title="Send Update via SMS">Send Update</button>
+  <button id="exportCSV" title="Export to CSV">Export CSV</button>
+  <button id="completeRound" title="Complete Round">Complete</button>
+  <button id="saveRound" title="Save Round to History">Save Round</button>
+  <button id="exitRound" title="Exit Without Saving">Exit</button>
+  <button id="darkModeToggle">Dark</button>
+  <button id="cbToggle">CB</button>
+</div>
   </div>
 
   <!-- SUMMARY -->

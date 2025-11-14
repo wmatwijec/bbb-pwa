@@ -11,26 +11,28 @@
  <style>
 
  /* === GLOBAL FIX: NO TOP GAP === */
-  html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 100% !important;
-    overflow-x: hidden;
-  }
+ /* === GLOBAL: NO TOP GAP + FULL HEIGHT === */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+  overflow-x: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
 
-  #app, .setup, .game, .summary {
-    min-height: 100vh !important;
-    padding-bottom: 0 !important;
-    box-sizing: border-box;
-  }
+body {
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  padding: 0 !important; /* ← KILL ALL PADDING */
+}
 
-  /* Remove any top padding */
-  .courseSetup,
-  .playerSetup,
-  .game {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
+#app, .setup, .game, .summary, .card, .courseSetup, .playerSetup {
+  min-height: 100vh !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
 
 
 
@@ -89,67 +91,48 @@
   button:disabled { opacity: 0.4; cursor: not-allowed; }
 
  
-/* === ULTRA-TINY 3-PER-ROW BUTTONS === */
+
+/* === ICON-ONLY 40px BUTTONS (HORIZONTAL SCROLL) === */
 @media (max-width: 768px) {
   .control-bar {
     position: static !important;
     width: 100% !important;
-    max-width: none !important;
     background: var(--card);
-    padding: 0.35rem 0.25rem !important;
+    padding: 0.4rem 0.3rem !important;
     border-top: 1px solid rgba(0,0,0,0.1);
     display: flex;
-    flex-wrap: nowrap !important;     /* ← FORCE ONE ROW */
-    justify-content: space-between !important;
-    gap: 0.2rem !important;
-    margin: 0 !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    gap: 0.3rem !important;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+  .control-bar::-webkit-scrollbar { display: none; }
 
   .control-bar button {
-    flex: 1 1 0 !important;           /* ← EQUAL WIDTH */
-    min-width: 75px !important;       /* ← MIN SIZE */
-    max-width: 110px !important;
-    padding: 0.35rem 0.4rem !important;
-    font-size: 0.68rem !important;
-    font-weight: 600 !important;
-    min-height: 28px !important;
-    border-radius: 5px !important;
+    flex: 0 0 40px !important;
+    width: 40px !important;
+    height: 40px !important;
+    padding: 0 !important;
     margin: 0 !important;
+    border-radius: 8px !important;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    border: none;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    gap: 0.15rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    position: relative;
-    padding-left: 1.8rem !important;
+    font-size: 0 !important;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   }
 
-  /* ICONS */
-  .control-bar button::before {
-    content: attr(data-icon);
-    font-weight: 700;
-    font-size: 0.9rem;
-    position: absolute;
-    left: 0.4rem;
-    top: 50%;
-    transform: translateY(-50%);
-    opacity: 0.9;
+  .control-bar button svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
   }
-
-  /* DARK / CB — FULL WIDTH */
-  #darkModeToggle,
-  #cbToggle {
-    flex: 1 1 0 !important;
-    min-width: 80px !important;
-    font-size: 0.72rem !important;
-    padding-left: 0.5rem !important;
-  }
-  #darkModeToggle::before,
-  #cbToggle::before { display: none; }
 }
 
 
@@ -460,16 +443,34 @@ input[type="checkbox"] {
     <div id="roundSummary" class="hidden"></div>
 
 <div class="control-bar">
-  <button id="sendSMS" title="Send Update via SMS">Update</button>
-  <button id="exportCSV" title="Export to CSV">CSV</button>
-  <button id="completeRound" title="Complete Round">Finish</button>
-  <button id="saveRound" title="Save Round to History">Save</button>
-  <button id="exitRound" title="Exit Without Saving">Exit</button>
-  <button id="darkModeToggle">Dark</button>
-  <button id="cbToggle">CB</button>
-  <button id="manageRosterBtn">Roster</button>
-    <button id="historyBtn">History</button>
- </div>
+  <button id="sendSMS" title="Send Update">
+    <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+  </button>
+  <button id="exportCSV" title="Export CSV">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+  </button>
+  <button id="completeRound" title="Complete Round">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+  </button>
+  <button id="saveRound" title="Save Round">
+    <svg viewBox="0 0 24 24"><path d="M17 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
+  </button>
+  <button id="exitRound" title="Exit">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+  </button>
+  <button id="darkModeToggle" title="Toggle Dark Mode">
+    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5.39 0 .74-.15 1.01-.39.26-.23.61-.38.99-.38C16.33 15 15 13.83 15 12c0-3.87-3.13-7-7-7z"/></svg>
+  </button>
+  <button id="cbToggle" title="Colorblind Mode">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+  </button>
+  <button id="manageRosterBtn" title="Manage Roster">
+    <svg viewBox="0 0 24 24"><path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+  </button>
+  <button id="historyBtn" title="Round History">
+    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12V9c0-1.1.9-2 2-2h6v2l4-4-4-4v2z"/></svg>
+  </button>
+</div>
 </div>
 
   <!-- SUMMARY -->

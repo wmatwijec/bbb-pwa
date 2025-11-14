@@ -599,34 +599,32 @@ input[type="checkbox"] {
  </div>
 
 <script>
-  // === BBB HELP MODAL JS ===
-  document.addEventListener('DOMContentLoaded', () => {
-    const helpBtn = document.getElementById('bbbHelpBtn');
-    const modal = document.getElementById('bbbHelpModal');
-    const backdrop = document.getElementById('bbbHelpBackdrop');
-    const closeBtn = document.getElementById('closeHelp');
+  // === BBB HELP MODAL JS (NO DOMContentLoaded) ===
+  const helpBtn = document.getElementById('bbbHelpBtn');
+  const modal = document.getElementById('bbbHelpModal');
+  const backdrop = document.getElementById('bbbHelpBackdrop');
+  const closeBtn = document.getElementById('closeHelp');
 
-    if (!helpBtn || !modal || !backdrop || !closeBtn) {
-      console.error('BBB Help: Missing element!', { helpBtn, modal, backdrop, closeBtn });
-      return;
-    }
-
-    function openHelp() {
+  if (helpBtn && modal && backdrop && closeBtn) {
+    helpBtn.addEventListener('click', () => {
       modal.classList.remove('hidden');
       backdrop.classList.remove('hidden');
-    }
-    function closeHelp() {
+    });
+    closeBtn.addEventListener('click', () => {
       modal.classList.add('hidden');
       backdrop.classList.add('hidden');
-    }
-
-    helpBtn.addEventListener('click', openHelp);
-    closeBtn.addEventListener('click', closeHelp);
-    backdrop.addEventListener('click', closeHelp);
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeHelp();
     });
-  });
+    backdrop.addEventListener('click', () => {
+      modal.classList.add('hidden');
+      backdrop.classList.add('hidden');
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        modal.classList.add('hidden');
+        backdrop.classList.add('hidden');
+      }
+    });
+  }
 </script>
 
 <script src="app-v21.js?v=202511131530"></script>

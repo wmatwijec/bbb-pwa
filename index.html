@@ -10,28 +10,22 @@
 
  <style>
 
- /* === GLOBAL FIX: NO TOP GAP === */
- /* === GLOBAL: NO TOP GAP + FULL HEIGHT === */
+ 
+/* === GLOBAL: NO TOP GAP + SAFE PADDING === */
 html, body {
-  margin: 0 !important;
-  padding: 0 !important;
-  height: 100% !important;
+  margin: 0;
+  padding: 0;
+  height: 100%;
   overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
-  padding: 0 !important; /* ← KILL ALL PADDING */
-}
 
-#app, .setup, .game, .summary, .card, .courseSetup, .playerSetup {
-  min-height: 100vh !important;
-  padding: 0 !important;
-  margin: 0 !important;
-  box-sizing: border-box;
+
+/* Ensure full height */
+#courseSetup, #playerSetup, #game, #summary {
+  display: flex;
+  flex-direction: column;
 }
 
 
@@ -57,14 +51,33 @@ body {
     --table-bg: #333;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  * { box-sizing: border-box; }
+
   body {
-    font-family: 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    padding: 1rem;
-    line-height: 1.5;
-  }
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  background: var(--card);
+  padding: 1rem;
+  border-radius: 12px;
+  margin: 0 auto 1rem;
+  max-width: 800px;
+  width: 100%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+
+#courseSetup, #playerSetup, #game, #summary {
+  display: flex;
+  flex-direction: column;
+}
+
+  
 
   h1 { 
     color: var(--green); 
@@ -257,7 +270,6 @@ input[type="checkbox"] {
     /* PLAYER SETUP & START ROUND */
     #playerSetup {
       padding: 1rem 1rem 160px 1rem !important;
-      min-height: 100vh !important;
       overflow: visible !important;
     }
 

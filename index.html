@@ -407,61 +407,8 @@ input[type="checkbox"] {
   }
 </script>
 
-<!-- BBB HELP MODAL -->
-<div id="bbbHelpModal" class="card hidden" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); width:90%; max-width:400px; z-index:9999; max-height:80vh; overflow:auto;">
-  <div style="text-align:center; padding:0.5rem; border-bottom:1px solid #ddd;">
-    <h3 style="margin:0; color:var(--green);">BBB Golf Icons</h3>
-    <button id="closeHelp" style="position:absolute; top:8px; right:8px; background:none; border:none; font-size:1.2rem; cursor:pointer;">×</button>
-  </div>
-  <div style="padding:1rem; display:grid; gap:0.75rem; font-size:0.9rem;">
-    
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
-      <div><strong>SMS</strong> – Send live update</div>
-    </div>
 
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-      <div><strong>CSV</strong> – Export scores</div>
-    </div>
 
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-      <div><strong>FIN</strong> – Complete round</div>
-    </div>
-
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M17 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/></svg>
-      <div><strong>SAVE</strong> – Save to history</div>
-    </div>
-
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-      <div><strong>EXIT</strong> – Quit without saving</div>
-    </div>
-
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M12 3a9 9 0 1 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5.39 0 .74-.15 1.01-.39.26-.23.61-.38.99-.38C16.33 15 15 13.83 15 12c0-3.87-3.13-7-7-7z"/></svg>
-      <div><strong>DARK</strong> – Toggle dark mode</div>
-    </div>
-
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/><path d="M12 7v10m-5-5h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-      <div><strong>CB</strong> – Colorblind mode</div>
-    </div>
-
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
-      <div><strong>ROSTER</strong> – Manage players</div>
-    </div>
-
-    <div style="display:flex; align-items:center; gap:0.75rem;">
-      <svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:currentColor;"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12V9c0-1.1.9-2 2-2h6v2l4-4-4-4v2z"/></svg>
-      <div><strong>HIST</strong> – View past rounds</div>
-    </div>
-
-  </div>
-</div>
 
 <!-- BACKDROP -->
 <div id="bbbHelpBackdrop" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9998;"></div>
@@ -598,12 +545,12 @@ input[type="checkbox"] {
 
   <!-- 8. Roster -->
   <button id="manageRosterBtn" title="Manage Roster">
-    <svg viewBox="0 0 24 24"><path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="#000"/></svg>
   </button>
 
   <!-- 9. History -->
   <button id="historyBtn" title="Round History">
-    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12V9c0-1.1.9-2 2-2h6v2l4-4-4-4v2z"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12V9c0-1.1.9-2 2-2h6v2l4-4-4-4v2z" fill="#000"/></svg>
   </button>
 </div>
 </div>
@@ -651,20 +598,38 @@ input[type="checkbox"] {
   <span id="infoPar" style="margin-left: 0.5rem; color: #0a6b0a;"></span>
  </div>
 
-  
-  <div id="appVersion" style="text-align:center; font-size:0.8rem; color:#666; margin:0.5rem 0;">
-  v21.2 — <span id="versionTimestamp"></span>
-</div>
+<script>
+  // === BBB HELP MODAL JS ===
+  document.addEventListener('DOMContentLoaded', () => {
+    const helpBtn = document.getElementById('bbbHelpBtn');
+    const modal = document.getElementById('bbbHelpModal');
+    const backdrop = document.getElementById('bbbHelpBackdrop');
+    const closeBtn = document.getElementById('closeHelp');
 
-  <!-- <button onclick="resetApp()" style="position:fixed;top:10px;left:10px;background:red;color:white;padding:10px;border:none;border-radius:6px;z-index:9999;">RESET APP</button>
-  <script>
-  function resetApp() {
-    localStorage.clear();
-    if ('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(r => r.forEach(reg => reg.unregister()));
-    location.reload();
-  }
-  </script> -->
-  
-  <script src="app-v21.js?v=202511131530"></script>
+    if (!helpBtn || !modal || !backdrop || !closeBtn) {
+      console.error('BBB Help: Missing element!', { helpBtn, modal, backdrop, closeBtn });
+      return;
+    }
+
+    function openHelp() {
+      modal.classList.remove('hidden');
+      backdrop.classList.remove('hidden');
+    }
+    function closeHelp() {
+      modal.classList.add('hidden');
+      backdrop.classList.add('hidden');
+    }
+
+    helpBtn.addEventListener('click', openHelp);
+    closeBtn.addEventListener('click', closeHelp);
+    backdrop.addEventListener('click', closeHelp);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeHelp();
+    });
+  });
+</script>
+
+<script src="app-v21.js?v=202511131530"></script>
+
 </body>
 </html>

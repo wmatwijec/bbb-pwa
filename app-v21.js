@@ -1,11 +1,9 @@
 console.log("BBB PWA v21.2 — FINAL FIX: DOM SAFE + SERVICE WORKER");
 
-// === VERSION STAMP ===
-const VERSION = 'v21.2';
-const BUILD_TIME = '2025-11-13 15:30';  // MATCH THE ?v= TIME
-if (document.getElementById('versionTimestamp')) {
-  document.getElementById('versionTimestamp').textContent = `${VERSION} @ ${BUILD_TIME}`;
-}
+// === VERSION STAMP (HIDDEN CACHE BUSTER) ===
+// No visible version — cache busting handled by meta tag
+// <meta id="cacheBuster" content="202511131530">
+
 console.log(`%cBBB PWA ${VERSION} — BUILD: ${BUILD_TIME}`, 'color: gold; font-weight: bold');
 
 

@@ -308,50 +308,46 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
     // === DEBUG: RED BUTTON TO TRIGGER EXISTING PICKER ===
-  window.triggerCSVLoad = function() {
-    console.log('%cRED BUTTON: Triggering CSV picker', 'color: red; font-weight: bold');
-    // Reuse the existing setTimeout logic by calling it directly
-    const pickerCode = async () => {
-      if (!confirm('DEBUG: Load players.csv and courses.csv from Files?')) return;
+ // === FINAL DEBUG: RED BUTTON ONLY ===
+window.debugLoadCSV = async function() {
+  console.clear();
+  console.log('%cDEBUG: RED BUTTON TAPPED', 'color: red; font-size: 1.5rem; font-weight: bold');
 
-      try {
-        // === PICK players.csv ===
-        const [playerHandle] = await window.showOpenFilePicker({
-          types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
-          multiple: false
-        });
-        const playerFile = await playerHandle.getFile();
-        if (!playerFile.name.toLowerCase().endsWith('.csv')) {
-          alert(`Rename file to .csv: ${playerFile.name}`);
-          return;
-        }
-        const playerText = await playerFile.text();
-        console.log('players.csv:', playerText.substring(0, 100));
-        localStorage.setItem('bbb_players.csv', playerText);
+  if (!window.showOpenFilePicker) {
+    alert('Use Safari on iPhone. File picker not supported.');
+    return;
+  }
 
-        // === PICK courses.csv ===
-        const [courseHandle] = await window.showOpenFilePicker({
-          types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
-          multiple: false
-        });
-        const courseFile = await courseHandle.getFile();
-        if (!courseFile.name.toLowerCase().endsWith('.csv')) {
-          alert(`Rename file to .csv: ${courseFile.name}`);
-          return;
-        }
-        const courseText = await courseFile.text();
-        console.log('courses.csv:', courseText.substring(0, 100));
-        localStorage.setItem('bbb_courses.csv', courseText);
+  try {
+    // === PICK players.csv ===
+    console.log('%c1. Opening picker for players.csv...', 'color: #ff9800; font-weight: bold');
+    const [pHandle] = await window.showOpenFilePicker({
+      types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
+      multiple: false
+    });
+    const pFile = await pHandle.getFile();
+    const pText = await pFile.text();
+    localStorage.setItem('bbb_players.csv', pText);
+    console.log('%cplayers.csv LOADED', 'color: green; font-weight: bold', pText.split('\n').slice(0,3).join(' | '));
 
-        alert('Both CSVs loaded! Reloading...');
-        location.reload();
-      } catch (err) {
-        console.error('CSV Load Error:', err);
-        alert(`Load failed: ${err.message}`);
-      }
-    };
-    pickerCode();
-  };
+    // === PICK courses.csv ===
+    console.log('%c2. Opening picker for courses.csv...', 'color: #ff9800; font-weight: bold');
+    const [cHandle] = await window.showOpenFilePicker({
+      types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
+      multiple: false
+    });
+    const cFile = await cHandle.getFile();
+    const cText = await cFile.text();
+    localStorage.setItem('bbb_courses.csv', cText);
+    console.log('%ccourses.csv LOADED', 'color: green; font-weight: bold', cText.split('\n')[0]);
+
+    alert('SUCCESS!\nBoth files loaded.\nReloading...');
+    setTimeout(() => location.reload(), 800);
+  } catch (err) {
+    console.error('%cCSV LOAD FAILED:', 'color: red; font-weight: bold', err);
+    alert(`ERROR:\n${err.message}\n\nCheck Mac Safari console.`);
+  }
+};
 
 
   // === INIT: LOAD DATA → RENDER UI ===

@@ -67,6 +67,25 @@ let inRound = false;
 // ==== DOM Cache ====
 let els = {};
 
+// === HOLE NAVIGATION LOCK ===
+let isHoleInProgress = false;
+
+function lockNavigation() {
+  isHoleInProgress = true;
+  els.prevHole.disabled = true;
+  els.nextHole.disabled = true;
+}
+
+function unlockNavigation() {
+  isHoleInProgress = false;
+  updateNavButtons();
+}
+
+function updateNavButtons() {
+  els.prevHole.disabled = currentHole <= 1 || isHoleInProgress;
+  els.nextHole.disabled = currentHole >= HOLES || isHoleInProgress;
+}
+
 // ========================================
 // === LOAD === (loads data from storage)
 // ========================================
@@ -680,6 +699,7 @@ function renderPlayerSelect() {
     renderHoleSummary(carryIn, isFinished);
     renderRoundSummary();
     updateCourseInfoBar();
+    updateNavButtons();  // ← ADD THIS
 
     save();
     if (debugMode) renderDebugCarryTable();
@@ -865,6 +885,10 @@ function renderPlayerSelect() {
 }
 
   function toggleScore(player, holeIdx, point) {
+    if (!isHoleInProgress && currentHole === holeIdx + 1) {
+      lockNavigation();  // First edit = lock
+    }
+
     const score = player.scores[holeIdx];
     const wasChecked = !!score[point];
     const willBeChecked = !wasChecked;
@@ -887,9 +911,10 @@ function renderPlayerSelect() {
 
   function finishCurrentHole() {
     finishedHoles.add(currentHole);
-    precomputeAllTotals();  // ALWAYS RE-CALC (even on re-finish)
+    precomputeAllTotals();
     updateHole();
     save();
+    unlockNavigation();  // ← UNLOCK HERE
     logScreen('FINISHED HOLE ' + currentHole);
   }
 
@@ -1018,7 +1043,7 @@ function renderPlayerSelect() {
     a.href = url;
     a.download = `BBB_${course.name.replace(/ /g, '_')}_${new Date().toISOString().slice(0,10)}.csv`;
     a.click();
-    URL.revokeObjectObjectURL(url);
+    URL.revokeObjectURL(url);
   }
 
   function showSummary() {
@@ -1082,23 +1107,28 @@ function renderPlayerSelect() {
   }
 
   els.prevHole.addEventListener('click', () => {
-  if (!inRound) return;
-  currentHole = currentHole === 1 ? HOLES : currentHole - 1;
-  updateHole();
-  updateCourseInfoBar();  // ADD THIS
-  logScreen(`PREV → HOLE ${currentHole}`);
-});
-
-
+    if (!inRound) return;
+    if (isHoleInProgress) {
+      alert("Finish current hole first!");
+      return;
+    }
+    currentHole = currentHole === 1 ? HOLES : currentHole - 1;
+    updateHole();
+    updateCourseInfoBar();
+    logScreen(`PREV → HOLE ${currentHole}`);
+  });
 
   els.nextHole.addEventListener('click', () => {
-  if (!inRound) return;
-  currentHole = (currentHole % HOLES) + 1;
-  updateHole();
-  updateCourseInfoBar();  // ADD THIS
-  logScreen(`NEXT → HOLE ${currentHole}`);
-});
-
+    if (!inRound) return;
+    if (isHoleInProgress) {
+      alert("Finish current hole first!");
+      return;
+    }
+    currentHole = (currentHole % HOLES) + 1;
+    updateHole();
+    updateCourseInfoBar();
+    logScreen(`NEXT → HOLE ${currentHole}`);
+  });
 
   els.finishHole.addEventListener('click', finishCurrentHole);
 
@@ -1106,13 +1136,14 @@ function renderPlayerSelect() {
     if (!finishedHoles.has(currentHole)) return;
     finishedHoles.delete(currentHole);
     players.forEach(p => {
-    p._cachedHoleTotals = {};
-    p._cachedTotal = 0;
+      p._cachedHoleTotals = {};
+      p._cachedTotal = 0;
     });
     precomputeAllTotals();
     save();
     updateHole();
-    logScreen('EDIT MODE')
+    unlockNavigation();  // ← UNLOCK ON EDIT
+    logScreen('EDIT MODE');
   });
 
   els.historyBtn.addEventListener('click', () => {
@@ -1130,7 +1161,3 @@ function renderPlayerSelect() {
     });
   });
 });
-
-
-
-

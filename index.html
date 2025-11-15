@@ -447,14 +447,14 @@
 
       <!-- 8. Roster -->
       <button id="manageRosterBtn" title="Manage Roster" aria-label="Manage Roster">
-        <svg viewBox="0 0 24 24" fill="#000">
-          <path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;" fill="#000">
+          <path d="M12 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 10a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm12 4a4 4 0 1 00 8 4 4 0 0 0 0-8z"/>
         </svg>
       </button>
 
       <!-- 9. History -->
       <button id="historyBtn" title="Round History" aria-label="Round History">
-        <svg viewBox="0 0 24 24" fill="#000">
+        <svg viewBox="0 0 24 24" style="width:20px;height:20px;" fill="#000">
           <path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12V9c0-1.1.9-2 2-2h6v2l4-4-4-4v2z"/>
         </svg>
       </button>
@@ -565,41 +565,39 @@
   <script src="app-v21.js?v=202511131530"></script>
 
   <!-- MODAL JS (AFTER APP) -->
-  <script>
-    const helpBtn = document.getElementById('bbbHelpBtn');
-    const modal = document.getElementById('bbbHelpModal');
-    const backdrop = document.getElementById('bbbHelpBackdrop');
-    const closeBtn = document.getElementById('closeHelp');
+ <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const helpBtn = document.getElementById('bbbHelpBtn');
+      const modal = document.getElementById('bbbHelpModal');
+      const backdrop = document.getElementById('bbbHelpBackdrop');
+      const closeBtn = document.getElementById('closeHelp');
 
-    if (helpBtn && modal && backdrop && closeBtn) {
-      helpBtn.addEventListener('click', () => {
+      if (!helpBtn || !modal || !backdrop || !closeBtn) {
+        console.error('BBB Help: Missing element(s)');
+        return;
+      }
+
+      const openModal = () => {
         modal.classList.remove('hidden');
         backdrop.classList.remove('hidden');
         modal.setAttribute('aria-hidden', 'false');
         backdrop.setAttribute('aria-hidden', 'false');
-      });
-      closeBtn.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        backdrop.classList.add('hidden');
-        modal.setAttribute('aria-hidden', 'true');
-        backdrop.setAttribute('aria-hidden', 'true');
-      });
-      backdrop.addEventListener('click', () => {
-        modal.classList.add('hidden');
-        backdrop.classList.add('hidden');
-        modal.setAttribute('aria-hidden', 'true');
-        backdrop.setAttribute('aria-hidden', 'true');
-      });
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-          modal.classList.add('hidden');
-          backdrop.classList.add('hidden');
-          modal.setAttribute('aria-hidden', 'true');
-          backdrop.setAttribute('aria-hidden', 'true');
-        }
-      });
-    }
-  </script>
+      };
 
+      const closeModal = () => {
+        modal.classList.add('hidden');
+        backdrop.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        backdrop.setAttribute('aria-hidden', 'true');
+      };
+
+      helpBtn.addEventListener('click', openModal);
+      closeBtn.addEventListener('click', closeModal);
+      backdrop.addEventListener('click', closeModal);
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+      });
+    });
+  </script>
 </body>
 </html>

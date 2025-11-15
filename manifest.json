@@ -5,7 +5,13 @@
   "scope": "/bbb-pwa/",
   "display": "standalone",
   "background_color": "#1a3e1a",
-  "theme_color": "#1a3e1a"
+  "theme_color": "#1a3e1a",
+  "file_handlers": [
+    {
+      "action": "/bbb-pwa/",
+      "accept": {
+        "text/csv": [".csv"]
+      }
+    }
+  ]
 }
-
-

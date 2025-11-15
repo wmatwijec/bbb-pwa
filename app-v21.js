@@ -21,6 +21,56 @@ const PREDEFINED_ROSTER = [
   { name: "Sally",  phone: "555-4444", email: "sally@example.com" }
 ];
 
+// === AUTO-READ FROM iOS FILES APP ===
+async function loadCSVFromFilesApp(filename, fallbackCSV) {
+  if (!window.showOpenFilePicker) {
+    console.warn('File System Access API not supported — using localStorage');
+    const saved = localStorage.getItem(`bbb_${filename}`);
+    return saved || fallbackCSV;
+  }
+
+  try {
+    const dirHandle = await window.showDirectoryPicker();
+    const fileHandle = await dirHandle.getFileHandle(filename);
+    const file = await fileHandle.getFile();
+    const text = await file.text();
+    localStorage.setItem(`bbb_${filename}`, text);
+    return text;
+  } catch (err) {
+    console.log('User cancelled or file not found — using cached');
+    return localStorage.getItem(`bbb_${filename}`) || fallbackCSV;
+  }
+}
+
+// === CSV PARSER ===
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim());
+  const rows = lines.slice(1).map(line => {
+    const values = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"' && line[i+1] === '"') { current += '"'; i++; }
+      else if (char === '"') inQuotes = !inQuotes;
+      else if (char === ',' && !inQuotes) { values.push(current.trim()); current = ''; }
+      else current += char;
+    }
+    values.push(current.trim());
+    return values;
+  });
+  return rows.map(row => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = row[i] || '');
+    return obj;
+  });
+}
+
+
+
+
+
 // === TEMP: FORCE UNREGISTER OLD SW ===
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.getRegistrations().then(regs => {
@@ -89,59 +139,60 @@ function updateNavButtons() {
 // ========================================
 // === LOAD === (loads data from storage)
 // ========================================
+// ========================================
+// === LOAD === (auto-reads from Files app)
+// ========================================
 function load(callback) {
-  console.log('%cLOAD: Starting', 'color: cyan');
+  console.log('%cLOAD: Starting from Files App', 'color: cyan');
 
-  // === SAFE ROSTER ===
-  try {
-    const saved = localStorage.getItem('bbb_roster');
-    if (saved && saved !== 'undefined' && saved !== 'null') {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed)) {
-        roster = parsed;
-        console.log('Roster loaded:', roster.length);
-      } else throw new Error();
-    } else throw new Error();
-  } catch (e) {
-    console.warn('Roster corrupted — using defaults');
-    roster = [...PREDEFINED_ROSTER];
-    localStorage.setItem('bbb_roster', JSON.stringify(roster));
-  }
+  // Auto-read from shared folder
+  Promise.all([
+    loadCSVFromFilesApp('players.csv', DEFAULT_PLAYERS_CSV),
+    loadCSVFromFilesApp('courses.csv', DEFAULT_COURSES_CSV)
+  ]).then(([playersCSV, coursesCSV]) => {
+    try {
+      roster = parseCSV(playersCSV).map(p => ({ name: p.Name, phone: p.Phone, email: p.Email }));
+    } catch (e) {
+      console.warn('Failed to parse players.csv — using defaults');
+      roster = parseCSV(DEFAULT_PLAYERS_CSV).map(p => ({ name: p.Name, phone: p.Phone, email: p.Email }));
+    }
 
-  // === SAFE COURSES ===
-  try {
-    const saved = localStorage.getItem('bbb_courses');
-    if (saved && saved !== 'undefined' && saved !== 'null') {
-      const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].pars) {
-        courses = parsed;
-        console.log('Courses loaded:', courses.length);
-      } else throw new Error();
-    } else throw new Error();
-  } catch (e) {
-    console.warn('Courses corrupted — using defaults');
-    courses = [...PREDEFINED_COURSES];
-    localStorage.setItem('bbb_courses', JSON.stringify(courses));
-  }
+    try {
+      courses = parseCSV(coursesCSV).map(c => ({
+        name: c.Name,
+        pars: Object.keys(c)
+          .filter(k => k.startsWith('Par'))
+          .sort((a,b) => parseInt(a.slice(3)) - parseInt(b.slice(3)))
+          .map(k => parseInt(c[k]))
+      }));
+    } catch (e) {
+      console.warn('Failed to parse courses.csv — using defaults');
+      courses = parseCSV(DEFAULT_COURSES_CSV).map(c => ({
+        name: c.Name,
+        pars: Object.keys(c).filter(k => k.startsWith('Par')).sort((a,b) => parseInt(a.slice(3)) - parseInt(b.slice(3))).map(k => parseInt(c[k]))
+      }));
+    }
 
-  // === FINAL FALLBACK ===
-  if (courses.length === 0) {
-    console.warn('Courses empty — forcing predefined');
-    courses = [...PREDEFINED_COURSES];
-    localStorage.setItem('bbb_courses', JSON.stringify(courses));
-  }
+    // Clean state
+    players = [];
+    currentCourse = null;
+    currentHole = 1;
+    inRound = false;
+    finishedHoles.clear();
+    lastFinishedHole = 0;
 
-  // === CLEAN STATE ===
-  players = [];
-  currentCourse = null;
-  currentHole = 1;
-  inRound = false;
-  finishedHoles.clear();
-  localStorage.removeItem('bbb');
-  localStorage.removeItem('bbb_currentCourse');
-
-  console.log('%cLOAD: Complete', 'color: green');
-  if (callback) callback();
+    console.log('%cLOAD: Complete — Files App', 'color: green');
+    if (callback) callback();
+  }).catch(err => {
+    console.error('LOAD FAILED', err);
+    // Fallback to defaults
+    roster = parseCSV(DEFAULT_PLAYERS_CSV).map(p => ({ name: p.Name, phone: p.Phone, email: p.Email }));
+    courses = parseCSV(DEFAULT_COURSES_CSV).map(c => ({
+      name: c.Name,
+      pars: Object.keys(c).filter(k => k.startsWith('Par')).sort((a,b) => parseInt(a.slice(3)) - parseInt(b.slice(3))).map(k => parseInt(c[k]))
+    }));
+    if (callback) callback();
+  });
 }
 
 // ========================================
@@ -916,7 +967,7 @@ function renderPlayerSelect() {
     precomputeAllTotals();
     updateHole();
   }
-  
+
 
     function finishCurrentHole() {
     finishedHoles.add(currentHole);

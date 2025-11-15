@@ -10,5 +10,8 @@ app_25_11_09.js
 index_25_11_09.html
 app_25_11_10.js
 app_25_11_14.html
+*.csv
+players.csv
+courses.csv
 *_backup
 

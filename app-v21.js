@@ -512,6 +512,7 @@ function renderPlayerSelect() {
   });
 
   inRound = true;
+  isHoleInProgress = false;  // ← RESET
   hideAll();
   els.game.classList.remove('hidden');
   els.manageRosterBtn.disabled = true;
@@ -700,7 +701,6 @@ function renderPlayerSelect() {
     renderRoundSummary();
     updateCourseInfoBar();
     updateNavButtons();  // ← ADD THIS
-
     save();
     if (debugMode) renderDebugCarryTable();
   }
@@ -885,7 +885,8 @@ function renderPlayerSelect() {
 }
 
   function toggleScore(player, holeIdx, point) {
-    if (!isHoleInProgress && currentHole === holeIdx + 1) {
+    // Only lock if this is the current hole being edited
+    if (!isHoleInProgress && holeIdx === currentHole - 1) {
       lockNavigation();  // First edit = lock
     }
 
@@ -1113,20 +1114,23 @@ function renderPlayerSelect() {
       return;
     }
     currentHole = currentHole === 1 ? HOLES : currentHole - 1;
+    isHoleInProgress = false;  // ← RESET
     updateHole();
     updateCourseInfoBar();
     logScreen(`PREV → HOLE ${currentHole}`);
   });
 
-  els.nextHole.addEventListener('click', () => {
+    els.nextHole.addEventListener('click', () => {
     if (!inRound) return;
     if (isHoleInProgress) {
       alert("Finish current hole first!");
       return;
     }
     currentHole = (currentHole % HOLES) + 1;
+    isHoleInProgress = false;  // ← RESET ON HOLE CHANGE
     updateHole();
     updateCourseInfoBar();
+    updateNavButtons();  // ← FORCE UPDATE
     logScreen(`NEXT → HOLE ${currentHole}`);
   });
 

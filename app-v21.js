@@ -307,6 +307,39 @@ document.addEventListener('DOMContentLoaded', () => {
     infoCurrentHole: document.getElementById('infoCurrentHole'),
     infoPar: document.getElementById('infoPar'),
   };
+  
+// === DEBUG: FORCE FILE PICKER FOR BOTH CSVs ===
+  setTimeout(async () => {
+    if (!confirm('DEBUG: Load players.csv and courses.csv from Files?')) return;
+
+    try {
+      // === PICK players.csv ===
+      const [playerHandle] = await window.showOpenFilePicker({
+        types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
+        multiple: false
+      });
+      const playerFile = await playerHandle.getFile();
+      const playerText = await playerFile.text();
+      localStorage.setItem('bbb_players.csv', playerText);
+
+      // === PICK courses.csv ===
+      const [courseHandle] = await window.showOpenFilePicker({
+        types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
+        multiple: false
+      });
+      const courseFile = await courseHandle.getFile();
+      const courseText = await courseFile.text();
+      localStorage.setItem('bbb_courses.csv', courseText);
+
+      alert('Both CSVs loaded! Reloading...');
+      location.reload();
+    } catch (err) {
+      console.log('Cancelled or error:', err);
+      alert('Load cancelled or failed. Check console.');
+    }
+  }, 1000);
+
+
 
   // === INIT: LOAD DATA → RENDER UI ===
   load(() => {

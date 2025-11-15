@@ -1,6 +1,11 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+  <script>
+    // === DEFINE GLOBALS FOR app-v21.js ===
+    const VERSION = '202511131530';
+    const BUILD_TIME = '202511131530';
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BBB Golf</title>
@@ -550,7 +555,7 @@
   <!-- BACKDROP -->
   <div id="bbbHelpBackdrop" class="hidden" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;" aria-hidden="true"></div>
 
-  <!-- SERVICE WORKER -->
+   <!-- SERVICE WORKER -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -561,21 +566,18 @@
     }
   </script>
 
-  <!-- APP JS (MUST LOAD FIRST) -->
+  <!-- APP JS -->
   <script src="app-v21.js?v=202511131530"></script>
 
-  <!-- MODAL JS (AFTER APP) -->
- <script>
+  <!-- MODAL JS (DOM READY) -->
+  <script>
     document.addEventListener('DOMContentLoaded', () => {
       const helpBtn = document.getElementById('bbbHelpBtn');
       const modal = document.getElementById('bbbHelpModal');
       const backdrop = document.getElementById('bbbHelpBackdrop');
       const closeBtn = document.getElementById('closeHelp');
 
-      if (!helpBtn || !modal || !backdrop || !closeBtn) {
-        console.error('BBB Help: Missing element(s)');
-        return;
-      }
+      if (!helpBtn || !modal || !backdrop || !closeBtn) return;
 
       const openModal = () => {
         modal.classList.remove('hidden');

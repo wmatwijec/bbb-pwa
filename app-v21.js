@@ -7,19 +7,25 @@ console.log("BBB PWA v21.2 — FINAL FIX: DOM SAFE + SERVICE WORKER");
 console.log(`%cBBB PWA ${VERSION} — BUILD: ${BUILD_TIME}`, 'color: gold; font-weight: bold');
 
 
-// === PREDEFINED DATA (MUST BE OUTSIDE DOMContentLoaded) ===
-const PREDEFINED_COURSES = [
-  { name: "Home Course", pars: [4,4,3,5,4,3,4,4,5, 4,3,4,5,4,3,4,4,5] },
-  { name: "Lakes",       pars: [4,3,4,5,4,3,4,4,5, 3,4,5,4,3,4,5,4,3] },
-  { name: "Hills",       pars: [5,4,3,4,3,4,5,4,3, 4,5,3,4,4,3,5,4,3] }
-];
+// === DEFAULT TEMPLATES (MUST BE DEFINED) ===
+const DEFAULT_PLAYERS_CSV = `Name,Phone,Email
+Walt,555-1111,walt@example.com
+Tim,555-2222,tim@example.com
+Frank,555-3333,frank@example.com
+Sally,555-4444,sally@example.com`;
 
-const PREDEFINED_ROSTER = [
-  { name: "Walt",   phone: "555-1111", email: "walt@example.com" },
-  { name: "Tim",    phone: "555-2222", email: "tim@example.com" },
-  { name: "Frank",  phone: "555-3333", email: "frank@example.com" },
-  { name: "Sally",  phone: "555-4444", email: "sally@example.com" }
-];
+const DEFAULT_COURSES_CSV = `Name,Par1,Par2,Par3,Par4,Par5,Par6,Par7,Par8,Par9,Par10,Par11,Par12,Par13,Par14,Par15,Par16,Par17,Par18
+Home Course,4,4,3,5,4,3,4,4,5,4,3,4,5,4,3,4,4,5
+Lakes,4,3,4,5,4,3,4,4,5,3,4,5,4,3,4,5,4,3
+Hills,5,4,3,4,3,4,5,4,3,4,5,3,4,4,3,5,4,3`;
+
+// === PREDEFINED DATA (FALLBACK) ===
+const PREDEFINED_COURSES = parseCSV(DEFAULT_COURSES_CSV).map(c => ({
+  name: c.Name,
+  pars: Object.keys(c).filter(k => k.startsWith('Par')).sort((a,b) => parseInt(a.slice(3)) - parseInt(b.slice(3))).map(k => parseInt(c[k]))
+}));
+
+const PREDEFINED_ROSTER = parseCSV(DEFAULT_PLAYERS_CSV).map(p => ({ name: p.Name, phone: p.Phone, email: p.Email }));
 
 // === AUTO-READ FROM iOS FILES APP ===
 async function loadCSVFromFilesApp(filename, fallbackCSV) {
@@ -142,6 +148,10 @@ function updateNavButtons() {
 // ========================================
 function load(callback) {
   console.log('%cLOAD: Starting from Files App', 'color: cyan');
+  console.log('%cDEBUG: DEFAULT CSVs defined?', 'color: yellow', {
+  hasPlayers: !!DEFAULT_PLAYERS_CSV,
+  hasCourses: !!DEFAULT_COURSES_CSV
+});
 
   // Auto-read from shared folder
   Promise.all([
@@ -152,7 +162,7 @@ function load(callback) {
       roster = parseCSV(playersCSV).map(p => ({ name: p.Name, phone: p.Phone, email: p.Email }));
     } catch (e) {
       console.warn('Failed to parse players.csv — using defaults');
-      roster = parseCSV(DEFAULT_PLAYERS_CSV).map(p => ({ name: p.Name, phone: p.Phone, email: p.Email }));
+      roster = PREDEFINED_ROSTER;
     }
 
     try {
@@ -165,10 +175,7 @@ function load(callback) {
       }));
     } catch (e) {
       console.warn('Failed to parse courses.csv — using defaults');
-      courses = parseCSV(DEFAULT_COURSES_CSV).map(c => ({
-        name: c.Name,
-        pars: Object.keys(c).filter(k => k.startsWith('Par')).sort((a,b) => parseInt(a.slice(3)) - parseInt(b.slice(3))).map(k => parseInt(c[k]))
-      }));
+      courses = PREDEFINED_COURSES;
     }
 
     // Clean state
@@ -308,10 +315,9 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
     // === DEBUG: RED BUTTON TO TRIGGER EXISTING PICKER ===
- // === FINAL DEBUG: RED BUTTON ONLY ===
-window.debugLoadCSV = async function() {
+ window.debugLoadCSV = async function() {
   console.clear();
-  console.log('%cDEBUG: RED BUTTON TAPPED', 'color: red; font-size: 1.5rem; font-weight: bold');
+  console.log('%cRED BUTTON: TAPPED', 'color: red; font-size: 1.5rem; font-weight: bold');
 
   if (!window.showOpenFilePicker) {
     alert('Use Safari on iPhone. File picker not supported.');
@@ -320,34 +326,31 @@ window.debugLoadCSV = async function() {
 
   try {
     // === PICK players.csv ===
-    console.log('%c1. Opening picker for players.csv...', 'color: #ff9800; font-weight: bold');
     const [pHandle] = await window.showOpenFilePicker({
-      types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
-      multiple: false
+      types: [{ description: 'CSV', accept: { 'text/csv': ['.csv'] } }]
     });
     const pFile = await pHandle.getFile();
     const pText = await pFile.text();
     localStorage.setItem('bbb_players.csv', pText);
-    console.log('%cplayers.csv LOADED', 'color: green; font-weight: bold', pText.split('\n').slice(0,3).join(' | '));
+    console.log('%cplayers.csv LOADED', 'color: green', pText.split('\n').slice(0,3));
 
     // === PICK courses.csv ===
-    console.log('%c2. Opening picker for courses.csv...', 'color: #ff9800; font-weight: bold');
     const [cHandle] = await window.showOpenFilePicker({
-      types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
-      multiple: false
+      types: [{ description: 'CSV', accept: { 'text/csv': ['.csv'] } }]
     });
     const cFile = await cHandle.getFile();
     const cText = await cFile.text();
     localStorage.setItem('bbb_courses.csv', cText);
-    console.log('%ccourses.csv LOADED', 'color: green; font-weight: bold', cText.split('\n')[0]);
+    console.log('%ccourses.csv LOADED', 'color: green', cText.split('\n')[0]);
 
-    alert('SUCCESS!\nBoth files loaded.\nReloading...');
+    alert('SUCCESS! Reloading...');
     setTimeout(() => location.reload(), 800);
   } catch (err) {
-    console.error('%cCSV LOAD FAILED:', 'color: red; font-weight: bold', err);
-    alert(`ERROR:\n${err.message}\n\nCheck Mac Safari console.`);
+    console.error('FAILED:', err);
+    alert(`ERROR: ${err.message}`);
   }
 };
+
 
 
   // === INIT: LOAD DATA → RENDER UI ===

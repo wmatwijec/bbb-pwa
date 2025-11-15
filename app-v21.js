@@ -136,9 +136,7 @@ function updateNavButtons() {
   els.nextHole.disabled = currentHole >= HOLES || isHoleInProgress;
 }
 
-// ========================================
-// === LOAD === (loads data from storage)
-// ========================================
+
 // ========================================
 // === LOAD === (auto-reads from Files app)
 // ========================================
@@ -308,6 +306,53 @@ document.addEventListener('DOMContentLoaded', () => {
     infoPar: document.getElementById('infoPar'),
   };
   
+
+    // === DEBUG: RED BUTTON TO TRIGGER EXISTING PICKER ===
+  window.triggerCSVLoad = function() {
+    console.log('%cRED BUTTON: Triggering CSV picker', 'color: red; font-weight: bold');
+    // Reuse the existing setTimeout logic by calling it directly
+    const pickerCode = async () => {
+      if (!confirm('DEBUG: Load players.csv and courses.csv from Files?')) return;
+
+      try {
+        // === PICK players.csv ===
+        const [playerHandle] = await window.showOpenFilePicker({
+          types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
+          multiple: false
+        });
+        const playerFile = await playerHandle.getFile();
+        if (!playerFile.name.toLowerCase().endsWith('.csv')) {
+          alert(`Rename file to .csv: ${playerFile.name}`);
+          return;
+        }
+        const playerText = await playerFile.text();
+        console.log('players.csv:', playerText.substring(0, 100));
+        localStorage.setItem('bbb_players.csv', playerText);
+
+        // === PICK courses.csv ===
+        const [courseHandle] = await window.showOpenFilePicker({
+          types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }],
+          multiple: false
+        });
+        const courseFile = await courseHandle.getFile();
+        if (!courseFile.name.toLowerCase().endsWith('.csv')) {
+          alert(`Rename file to .csv: ${courseFile.name}`);
+          return;
+        }
+        const courseText = await courseFile.text();
+        console.log('courses.csv:', courseText.substring(0, 100));
+        localStorage.setItem('bbb_courses.csv', courseText);
+
+        alert('Both CSVs loaded! Reloading...');
+        location.reload();
+      } catch (err) {
+        console.error('CSV Load Error:', err);
+        alert(`Load failed: ${err.message}`);
+      }
+    };
+    pickerCode();
+  };
+
 // === DEBUG: FORCE FILE PICKER FOR BOTH CSVs ===
   setTimeout(async () => {
     if (!confirm('DEBUG: Load players.csv and courses.csv from Files?')) return;

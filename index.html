@@ -15,21 +15,23 @@
 
   <style>
     /* === GLOBAL: NO TOP GAP + SAFE PADDING === */
- html, body {
+ /* Enable full scroll + safe area */
+html, body {
   margin: 0;
   padding: 0;
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Enable full scroll — no lock */
 body {
   position: static;
   overscroll-behavior-y: contain;
+  padding-top: env(safe-area-inset-top, 0px);
 }
-
 
 
     :root {

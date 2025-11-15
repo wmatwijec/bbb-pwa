@@ -503,6 +503,7 @@ function renderPlayerSelect() {
   
   currentHole = 1;  // ← FORCE HOLE 1
   finishedHoles.clear();
+  isHoleInProgress = false;  // ← ENSURE
 
   players.forEach(p => {
     p.scores = Array(HOLES).fill(null).map(() => ({}));
@@ -884,10 +885,16 @@ function renderPlayerSelect() {
   el.classList.remove('hidden');
 }
 
-  function toggleScore(player, holeIdx, point) {
-    // Only lock if this is the current hole being edited
-    if (!isHoleInProgress && holeIdx === currentHole - 1) {
-      lockNavigation();  // First edit = lock
+    function toggleScore(player, holeIdx, point) {
+    const currentHoleIdx = currentHole - 1;
+    if (holeIdx === currentHoleIdx && !isHoleInProgress) {
+      const hasAnyScore = players.some(p => {
+        const s = p.scores[holeIdx] || {};
+        return s.firstOn || s.closest || s.putt;
+      });
+      if (!hasAnyScore) {
+        lockNavigation();
+      }
     }
 
     const score = player.scores[holeIdx];
@@ -909,13 +916,14 @@ function renderPlayerSelect() {
     precomputeAllTotals();
     updateHole();
   }
+  
 
-  function finishCurrentHole() {
+    function finishCurrentHole() {
     finishedHoles.add(currentHole);
+    unlockNavigation();  // ← UNLOCK FIRST
     precomputeAllTotals();
-    updateHole();
+    updateHole();        // ← THEN UPDATE
     save();
-    unlockNavigation();  // ← UNLOCK HERE
     logScreen('FINISHED HOLE ' + currentHole);
   }
 
@@ -1146,6 +1154,7 @@ function renderPlayerSelect() {
     precomputeAllTotals();
     save();
     updateHole();
+    isHoleInProgress = false;  // ← ADD THIS
     unlockNavigation();  // ← UNLOCK ON EDIT
     logScreen('EDIT MODE');
   });
